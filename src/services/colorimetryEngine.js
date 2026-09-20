@@ -123,9 +123,10 @@ export class ColorimetryEngine {
         const g = data[idx+1];
         const b = data[idx+2];
 
-        // Vibrant Yellow Silicone Substrate (R & G > 130, G - B > 55, R + G > 270)
-        // Strictly distinguishes yellow silicone from human skin (where G - B is < 40)
-        const isYellowBand = (r > 130 && g > 110 && (g - b) > 55 && (r + g) > 270);
+        // Yellow / Beige Silicone Substrate (r & g > 120, g - b > 30, r + g > 250)
+        // Strictly distinguishes wristband substrate from human skin or dark non-dosimeter objects
+        const isYellowBand = (r > 120 && g > 100 && (g - b) > 30 && (r + g) > 250) ||
+                             (r > 180 && g > 165 && b > 130 && (r - b) > 25);
 
         if (isYellowBand) {
           if (x < yellowMinX) yellowMinX = x;

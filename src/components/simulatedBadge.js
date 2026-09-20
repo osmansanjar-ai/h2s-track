@@ -14,9 +14,9 @@ export class SimulatedBadge {
     ctx.clearRect(0, 0, width, height);
 
     // 1. Background Yellow Silicone Wristband Substrate
-    ctx.fillStyle = '#EBE3D3';
-    ctx.strokeStyle = '#D5CAAF';
-    ctx.lineWidth = 2;
+    ctx.fillStyle = '#F0C419';
+    ctx.strokeStyle = '#D9A700';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.roundRect(8, 8, width - 16, height - 16, 28);
     ctx.fill();
