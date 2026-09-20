@@ -210,6 +210,13 @@ class Database {
       throw new Error('User with this email already exists');
     }
 
+    const rawCompany = (userData.company || '').trim();
+    const isIndependent = !rawCompany || rawCompany.toLowerCase() === 'independent' || userData.isIndependent;
+    const companyName = isIndependent ? 'Independent' : rawCompany;
+    
+    // Safety Officers and Independent users are auto-approved; Workers with a company start as 'Pending'
+    const companyStatus = (userData.role === 'officer' || isIndependent) ? 'Approved' : 'Pending';
+
     const newUser = {
       id: 'USR-' + Math.floor(1000 + Math.random() * 9000),
       workerId: userData.workerId || 'W-' + Math.floor(100 + Math.random() * 900),
@@ -217,7 +224,9 @@ class Database {
       email: userData.email.toLowerCase(),
       passwordHash: bcrypt.hashSync(userData.password, 10),
       role: userData.role || 'worker',
-      site: userData.site || 'Panvel Gas Terminal',
+      company: companyName,
+      companyStatus: companyStatus,
+      site: userData.site || (isIndependent ? 'Personal Workspace' : companyName),
       unit: userData.unit || 'Operations',
       createdAt: new Date().toISOString()
     };
@@ -227,6 +236,43 @@ class Database {
 
     const { passwordHash, ...userWithoutPassword } = newUser;
     return userWithoutPassword;
+  }
+
+  getPendingJoinRequests(officerCompany) {
+    const db = this.read();
+    if (!officerCompany || officerCompany === 'Independent') {
+      return db.users.filter(u => u.role === 'worker' && u.companyStatus === 'Pending').map(({ passwordHash, ...u }) => u);
+    }
+    return db.users.filter(u =>
+      u.role === 'worker' &&
+      u.companyStatus === 'Pending' &&
+      u.company.toLowerCase() === officerCompany.toLowerCase()
+    ).map(({ passwordHash, ...u }) => u);
+  }
+
+  approveJoinRequest(userId) {
+    const db = this.read();
+    const user = db.users.find(u => u.id === userId);
+    if (user) {
+      user.companyStatus = 'Approved';
+      this.write(db);
+      const { passwordHash, ...u } = user;
+      return u;
+    }
+    throw new Error('User not found');
+  }
+
+  rejectJoinRequest(userId) {
+    const db = this.read();
+    const user = db.users.find(u => u.id === userId);
+    if (user) {
+      user.company = 'Independent';
+      user.companyStatus = 'Approved';
+      this.write(db);
+      const { passwordHash, ...u } = user;
+      return u;
+    }
+    throw new Error('User not found');
   }
 
   getWorkers() {

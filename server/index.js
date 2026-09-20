@@ -50,7 +50,7 @@ app.use(authenticateToken);
  */
 app.post('/api/auth/signup', (req, res) => {
   try {
-    const { name, email, password, role, site, unit } = req.body;
+    const { name, email, password, role, company, isIndependent, site, unit } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required' });
@@ -65,12 +65,14 @@ app.post('/api/auth/signup', (req, res) => {
       email,
       password,
       role: role || 'worker',
-      site: site || 'Panvel Gas Terminal',
+      company: company || '',
+      isIndependent: Boolean(isIndependent),
+      site: site || company || 'Panvel Gas Terminal',
       unit: unit || 'Operations'
     });
 
     const token = jwt.sign(
-      { id: newUser.id, email: newUser.email, role: newUser.role, name: newUser.name },
+      { id: newUser.id, email: newUser.email, role: newUser.role, name: newUser.name, company: newUser.company },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -82,6 +84,41 @@ app.post('/api/auth/signup', (req, res) => {
     });
   } catch (err) {
     res.status(400).json({ error: err.message || 'Registration failed' });
+  }
+});
+
+/**
+ * GET /api/company/pending-requests
+ */
+app.get('/api/company/pending-requests', (req, res) => {
+  const officerCompany = req.user ? req.user.company : '';
+  const requests = db.getPendingJoinRequests(officerCompany);
+  res.json({ requests });
+});
+
+/**
+ * POST /api/company/approve
+ */
+app.post('/api/company/approve', (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = db.approveJoinRequest(userId);
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/company/reject
+ */
+app.post('/api/company/reject', (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = db.rejectJoinRequest(userId);
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 

@@ -368,6 +368,15 @@
               <input type="password" x-model="signupPassword" placeholder="Minimum 6 characters" required minlength="6"
                 class="w-full mt-1 mb-3.5 rounded-lg border border-line px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-DEFAULT">
 
+              <label class="text-xs font-semibold text-ink/70">Company / Organization Name</label>
+              <input type="text" x-model="signupCompany" :disabled="signupIsIndependent" placeholder="e.g. Indian Oil, Panvel Gas, or Reliance"
+                class="w-full mt-1 mb-2 rounded-lg border border-line px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-DEFAULT disabled:bg-paper disabled:text-ink/40">
+
+              <label class="flex items-center gap-2 mb-3.5 text-xs font-medium text-ink/70 cursor-pointer">
+                <input type="checkbox" x-model="signupIsIndependent" class="rounded border-line text-amber-500 focus:ring-yellow-DEFAULT">
+                <span>Register as Independent / Personal User (No company association)</span>
+              </label>
+
               <label class="text-xs font-semibold text-ink/70" x-text="t('selectRole')">Account Role</label>
               <select x-model="signupRole" class="w-full mt-1 mb-5 rounded-lg border border-line px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-DEFAULT font-medium">
                 <option value="worker" x-text="t('roleWorker')">Field Worker / Plant Operator</option>
@@ -507,6 +516,15 @@
               <button @click="exportCSV()" class="inline-flex items-center gap-1.5 border border-line bg-white rounded-lg px-3 py-1.5 text-xs font-semibold hover:bg-paper transition shadow-sm">
                 <i data-lucide="download" class="w-3.5 h-3.5"></i> <span x-text="t('exportCsv')">Export CSV</span>
               </button>
+            </div>
+
+            <!-- Pending Company Join Banner -->
+            <div x-show="currentUser && currentUser.companyStatus === 'Pending'" class="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start gap-3 shadow-xs">
+              <i data-lucide="clock" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+              <div>
+                <p class="font-bold text-sm mb-0.5">Company Join Request Pending</p>
+                <p class="text-amber-800">Your request to join <span class="font-semibold" x-text="currentUser.company"></span> is awaiting Safety Officer approval. Until verified, you operate in Independent mode.</p>
+              </div>
             </div>
 
             <!-- Hero Exposure Card -->
@@ -850,6 +868,34 @@
               </template>
             </div>
 
+            <!-- Pending Company Join Requests for Safety Officer -->
+            <div x-show="role==='officer' && pendingJoinRequests.length > 0" class="mb-6 bg-white border-2 border-amber-300 rounded-2xl p-5 shadow-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                <p class="font-bold text-sm text-ink">Company Join Requests (<span x-text="pendingJoinRequests.length"></span>)</p>
+              </div>
+              <p class="text-xs text-ink/60 mb-4">The following worker accounts requested to join your company EHS network and are awaiting verification:</p>
+              
+              <div class="space-y-2.5">
+                <template x-for="req in pendingJoinRequests" :key="req.id">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-amber-50/60 border border-amber-200/80 rounded-xl p-3.5 gap-3">
+                    <div>
+                      <p class="font-bold text-sm text-ink" x-text="req.name"></p>
+                      <p class="text-xs text-ink/60" x-text="req.email + ' · Requested Company: ' + req.company"></p>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <button @click="approveJoinRequest(req.id)" class="px-3 py-1.5 rounded-lg bg-go text-white text-xs font-bold hover:brightness-95 transition shadow-xs flex items-center gap-1">
+                        <i data-lucide="user-check" class="w-3.5 h-3.5"></i> Approve & Connect
+                      </button>
+                      <button @click="rejectJoinRequest(req.id)" class="px-3 py-1.5 rounded-lg bg-paper border border-line text-ink/70 text-xs font-semibold hover:bg-black/5 transition">
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+
             <div class="grid md:grid-cols-5 gap-5 mb-6">
               <div class="md:col-span-3 bg-white border border-line rounded-2xl shadow-card p-5">
                 <p class="text-sm font-semibold mb-4" x-text="t('siteExposureTrend')">Site Exposure Trend (Average Shift ppm·h)</p>
@@ -1129,8 +1175,17 @@
               <p class="font-display font-bold text-xl" x-text="t('safetyAlerts')">Safety & Validity Alerts</p>
             </div>
 
-            <div class="space-y-2.5">
-              <template x-for="a in alerts" :key="a.id">
+            <!-- Empty State for Personal / Unalerted Accounts -->
+            <div x-show="filteredAlerts.length === 0" class="bg-white border border-line rounded-2xl p-8 text-center shadow-card">
+              <div class="w-12 h-12 rounded-full bg-go-bg text-go flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+              </div>
+              <p class="font-bold text-sm text-ink mb-1">No Safety Alerts Logged</p>
+              <p class="text-xs text-ink/60 max-w-sm mx-auto">Your account is clear. There are no high exposure or validity alerts logged for your account.</p>
+            </div>
+
+            <div x-show="filteredAlerts.length > 0" class="space-y-2.5">
+              <template x-for="a in filteredAlerts" :key="a.id">
                 <div class="bg-white border border-line rounded-xl px-4 py-3.5 flex items-start gap-3 shadow-card">
                   <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
                     :class="{'bg-bad-bg text-bad': a.sev==='Critical','bg-warn-bg text-warn': a.sev==='Warning','bg-go-bg text-go': a.sev==='Attention','bg-paper text-ink/50': a.sev==='Info'}">

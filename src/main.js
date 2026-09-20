@@ -47,8 +47,41 @@ document.addEventListener('alpine:init', () => {
     signupEmail: '',
     signupPassword: '',
     signupRole: 'worker',
+    signupCompany: '',
+    signupIsIndependent: false,
     signupSite: 'Panvel Gas Terminal',
     signupUnit: 'Operations',
+    pendingJoinRequests: [],
+
+    // Data Scoping & Multi-Tenant Data Isolation Getters
+    get filteredAlerts() {
+      if (!this.currentUser) return this.alerts;
+      if (this.currentUser.role === 'worker') {
+        // Workers ONLY see safety & shift alerts matching their own name/IDs
+        return this.alerts.filter(a =>
+          a.workerName === this.currentUser.name ||
+          a.workerId === this.currentUser.workerId ||
+          a.userId === this.currentUser.id
+        );
+      }
+      // Safety Officers see company alerts
+      return this.alerts.filter(a => {
+        if (!this.currentUser.company || this.currentUser.company === 'Independent') return true;
+        return a.company === this.currentUser.company || !a.company || a.company === 'Panvel Gas Terminal';
+      });
+    },
+
+    get filteredHistory() {
+      if (!this.currentUser) return this.history;
+      if (this.currentUser.role === 'worker') {
+        return this.history.filter(h =>
+          h.workerName === this.currentUser.name ||
+          h.workerId === this.currentUser.workerId ||
+          h.userId === this.currentUser.id
+        );
+      }
+      return this.history;
+    },
 
     // Camera & Scanner State
     scanning: false,
@@ -239,7 +272,9 @@ document.addEventListener('alpine:init', () => {
             email: this.signupEmail,
             password: this.signupPassword,
             role: this.signupRole,
-            site: this.signupSite,
+            company: this.signupIsIndependent ? 'Independent' : this.signupCompany,
+            isIndependent: this.signupIsIndependent,
+            site: this.signupIsIndependent ? 'Personal Workspace' : (this.signupCompany || 'Panvel Gas Terminal'),
             unit: this.signupUnit
           })
         });
@@ -258,6 +293,8 @@ document.addEventListener('alpine:init', () => {
         this.signupName = '';
         this.signupEmail = '';
         this.signupPassword = '';
+        this.signupCompany = '';
+        this.signupIsIndependent = false;
 
         await this.refreshData();
         this.view = 'home';
@@ -265,6 +302,53 @@ document.addEventListener('alpine:init', () => {
         this.authError = err.message;
       } finally {
         this.authLoading = false;
+      }
+    },
+
+    async fetchPendingJoinRequests() {
+      if (!this.token || this.role !== 'officer') return;
+      try {
+        const res = await fetch('/api/company/pending-requests', {
+          headers: { 'Authorization': `Bearer ${this.token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          this.pendingJoinRequests = data.requests || [];
+        }
+      } catch (err) {}
+    },
+
+    async approveJoinRequest(userId) {
+      try {
+        const res = await fetch('/api/company/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+          body: JSON.stringify({ userId })
+        });
+        if (res.ok) {
+          await this.fetchPendingJoinRequests();
+          await this.refreshData();
+          alert('Worker join request approved!');
+        }
+      } catch (err) {
+        alert('Failed to approve request');
+      }
+    },
+
+    async rejectJoinRequest(userId) {
+      try {
+        const res = await fetch('/api/company/reject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+          body: JSON.stringify({ userId })
+        });
+        if (res.ok) {
+          await this.fetchPendingJoinRequests();
+          await this.refreshData();
+          alert('Worker request rejected.');
+        }
+      } catch (err) {
+        alert('Failed to reject request');
       }
     },
 
@@ -331,6 +415,7 @@ document.addEventListener('alpine:init', () => {
           const w = await workersRes.json();
           this.workers = w.workers || [];
         }
+        await this.fetchPendingJoinRequests();
       } catch (err) {
         console.warn('API data fetch failed', err);
       }
