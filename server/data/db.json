@@ -1,0 +1,438 @@
+{
+  "users": [
+    {
+      "id": "USR-027",
+      "workerId": "W-027",
+      "name": "Ramesh Kadam",
+      "email": "ramesh@panvel-gas.com",
+      "passwordHash": "$2a$10$LfnWOkPYGB9HEtLEuH0FOuQr51FxYof0wShHocLI4dTe2eT3BbRpm",
+      "role": "worker",
+      "site": "Panvel Gas Terminal",
+      "unit": "Unit 4 Compression",
+      "createdAt": "2026-09-11T15:22:04.868Z"
+    },
+    {
+      "id": "USR-014",
+      "workerId": "W-014",
+      "name": "Suresh Patil",
+      "email": "suresh@panvel-gas.com",
+      "passwordHash": "$2a$10$LfnWOkPYGB9HEtLEuH0FOuQr51FxYof0wShHocLI4dTe2eT3BbRpm",
+      "role": "worker",
+      "site": "Panvel Gas Terminal",
+      "unit": "Sulfur Recovery",
+      "createdAt": "2026-09-11T15:22:04.870Z"
+    },
+    {
+      "id": "USR-999",
+      "workerId": "OFFICER-01",
+      "name": "Dr. V. Sharma",
+      "email": "officer@panvel-gas.com",
+      "passwordHash": "$2a$10$LfnWOkPYGB9HEtLEuH0FOuQr51FxYof0wShHocLI4dTe2eT3BbRpm",
+      "role": "officer",
+      "site": "Panvel Gas Terminal",
+      "unit": "EHS Executive Management",
+      "createdAt": "2026-09-11T15:22:04.870Z"
+    },
+    {
+      "id": "USR-2380",
+      "workerId": "W-703",
+      "name": "Alex Mercer",
+      "email": "alex@gmail.com",
+      "passwordHash": "$2a$10$du50pSMjpiXqShjjVbqBk.hKWWP0zcTbtoqOZfD28/lJijxwclJdG",
+      "role": "worker",
+      "site": "Panvel Gas Terminal",
+      "unit": "Operations",
+      "createdAt": "2026-09-11T15:22:24.655Z"
+    },
+    {
+      "id": "USR-2044",
+      "workerId": "W-836",
+      "name": "osman",
+      "email": "osman@gmail.com",
+      "passwordHash": "$2a$10$duLyRylmnix86D5bAg7CWeQBJ36MxZRdhYdw7FCNtiUVTjuRtoN66",
+      "role": "worker",
+      "site": "Panvel Gas Terminal",
+      "unit": "Operations",
+      "createdAt": "2026-09-11T15:23:58.212Z"
+    },
+    {
+      "id": "USR-9642",
+      "workerId": "W-105",
+      "name": "osman",
+      "email": "osman5@gmail.com",
+      "passwordHash": "$2a$10$gmGLDKr/3r7A7lPkCJGlY.sqeYSdby1sCrlVUGsPYb4N6DJF7zx6e",
+      "role": "worker",
+      "site": "Panvel Gas Terminal",
+      "unit": "Operations",
+      "createdAt": "2026-09-11T15:29:10.211Z"
+    },
+    {
+      "id": "USR-4889",
+      "workerId": "W-981",
+      "name": "Osman Sanjar",
+      "email": "osman.sanjar@gmail.com",
+      "passwordHash": "$2a$10$2clhXGzjbtyjMwdLj7LouOwglTNdxcJtKlPud2NUWE7iftpGeMdtm",
+      "role": "worker",
+      "site": "Panvel Gas Terminal",
+      "unit": "Operations",
+      "createdAt": "2026-09-11T15:34:07.969Z"
+    },
+    {
+      "id": "USR-7805",
+      "workerId": "W-853",
+      "name": "Osman Sanjar",
+      "email": "osmansanjar@gmail.com",
+      "passwordHash": "$2a$10$yZpQ2RuXb2I5Lxox.GYCme66OjnOFRUtfn/gWBWvba.K53E2i.pHm",
+      "role": "worker",
+      "site": "Panvel Gas Terminal",
+      "unit": "Operations",
+      "createdAt": "2026-09-11T15:35:31.974Z"
+    },
+    {
+      "id": "USR-5330",
+      "workerId": "W-992",
+      "name": "Osm",
+      "email": "o@gmail.com",
+      "passwordHash": "$2a$10$dzrdCz7PrDl2Gyxd1ALpj.I/BOAT96ZwD5HjMKDG2BESBsM7Pil9C",
+      "role": "worker",
+      "site": "Panvel Gas Terminal",
+      "unit": "Operations",
+      "createdAt": "2026-09-11T16:41:09.908Z"
+    },
+    {
+      "id": "USR-9706",
+      "workerId": "W-655",
+      "name": "osman ",
+      "email": "o@gnail.com",
+      "passwordHash": "$2a$10$yJKVNOM2Joad4qc2JSNAWeWZp1rg61R5RcF6moHMRgEGXzYTkS8l2",
+      "role": "worker",
+      "site": "Panvel Gas Terminal",
+      "unit": "Operations",
+      "createdAt": "2026-09-11T18:12:18.712Z"
+    }
+  ],
+  "batches": [
+    {
+      "batchId": "H2S-2026-001",
+      "mfgDate": "2026-01-15",
+      "expiryDate": "2027-12-31",
+      "curve": "C17",
+      "coeffA": 0.82,
+      "coeffB": 1.45,
+      "coeffC": 0,
+      "uncertainty": 1.4,
+      "status": "Validated"
+    },
+    {
+      "batchId": "H2S-2026-002",
+      "mfgDate": "2026-02-01",
+      "expiryDate": "2027-12-31",
+      "curve": "C18",
+      "coeffA": 0.88,
+      "coeffB": 1.4,
+      "coeffC": 0.1,
+      "uncertainty": 1.2,
+      "status": "Validated"
+    },
+    {
+      "batchId": "H2S-2025-EXPIRED",
+      "mfgDate": "2024-01-01",
+      "expiryDate": "2025-01-01",
+      "curve": "C15",
+      "coeffA": 0.8,
+      "coeffB": 1.5,
+      "coeffC": 0,
+      "uncertainty": 1.8,
+      "status": "Expired"
+    }
+  ],
+  "badges": [
+    {
+      "id": "H2S-001",
+      "batchId": "H2S-2026-001",
+      "workerId": "W-027",
+      "workerName": "Ramesh Kadam",
+      "status": "In Use",
+      "issuedDate": "2026-09-01"
+    },
+    {
+      "id": "H2S-002",
+      "batchId": "H2S-2026-001",
+      "workerId": "W-014",
+      "workerName": "Suresh Patil",
+      "status": "Scanned",
+      "issuedDate": "2026-09-01"
+    },
+    {
+      "id": "H2S-003",
+      "batchId": "H2S-2026-001",
+      "workerId": null,
+      "workerName": "Unassigned",
+      "status": "Available",
+      "issuedDate": "2026-09-01"
+    },
+    {
+      "id": "H2S-071",
+      "batchId": "H2S-2026-002",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "status": "Scanned",
+      "issuedDate": "2026-08-10"
+    }
+  ],
+  "scans": [
+    {
+      "id": "SCN-5795",
+      "date": "16 Sep 2026",
+      "isoDate": "2026-09-16",
+      "time": "19:21",
+      "shift": "08:00–16:00",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-W-027",
+      "batchId": "H2S-2026-001",
+      "dose": 14.4,
+      "uncertainty": 1.8,
+      "status": "Valid & Safe",
+      "quality": "Good",
+      "rgb": {
+        "r": 173,
+        "g": 179,
+        "b": 187
+      },
+      "deltaE": 25.09,
+      "calibration": "XGBoost Regressor (MDPI Molecules 2023 Calibrated)",
+      "userId": "USR-027",
+      "createdAt": "2026-09-16T13:51:56.750Z"
+    },
+    {
+      "id": "SCN-3904",
+      "date": "16 Sep 2026",
+      "isoDate": "2026-09-16",
+      "time": "19:20",
+      "shift": "08:00–16:00",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-W-027",
+      "batchId": "H2S-2026-001",
+      "dose": 8,
+      "uncertainty": 1.4,
+      "status": "Valid & Safe",
+      "quality": "Good",
+      "rgb": {
+        "r": 217,
+        "g": 199,
+        "b": 180
+      },
+      "deltaE": 15.02,
+      "calibration": "XGBoost Regressor (MDPI Molecules 2023 Calibrated)",
+      "userId": "USR-027",
+      "createdAt": "2026-09-16T13:51:00.176Z"
+    },
+    {
+      "id": "SCN-9501",
+      "date": "16 Sep 2026",
+      "isoDate": "2026-09-16",
+      "time": "19:19",
+      "shift": "08:00–16:00",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-W-027",
+      "batchId": "H2S-2026-001",
+      "dose": 9.5,
+      "uncertainty": 1.2,
+      "status": "Valid & Safe",
+      "quality": "Good",
+      "rgb": {
+        "r": 228,
+        "g": 207,
+        "b": 189
+      },
+      "deltaE": 12.45,
+      "calibration": "XGBoost Regressor (MDPI Molecules 2023 Calibrated)",
+      "userId": "USR-027",
+      "createdAt": "2026-09-16T13:49:20.325Z"
+    },
+    {
+      "id": "SCN-3522",
+      "date": "12 Sep 2026",
+      "isoDate": "2026-09-12",
+      "time": "12:18",
+      "shift": "08:00–16:00",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-W-027",
+      "batchId": "H2S-2026-001",
+      "dose": 9.5,
+      "uncertainty": 1.4,
+      "status": "Valid & Safe",
+      "quality": "Good",
+      "rgb": {
+        "r": 228,
+        "g": 207,
+        "b": 188
+      },
+      "deltaE": 0.7,
+      "calibration": "Trained 16-Point Matrix (Curve C17)",
+      "userId": "USR-027",
+      "createdAt": "2026-09-12T06:48:25.090Z"
+    },
+    {
+      "id": "SCN-4240",
+      "date": "12 Sep 2026",
+      "isoDate": "2026-09-12",
+      "time": "11:21",
+      "shift": "08:00–16:00",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-W-027",
+      "batchId": "H2S-2026-001",
+      "dose": 79.5,
+      "uncertainty": 1.4,
+      "status": "Critical Exposure",
+      "quality": "Good",
+      "rgb": {
+        "r": 199,
+        "g": 159,
+        "b": 98
+      },
+      "deltaE": 12.4,
+      "calibration": "Trained 16-Point Matrix (Curve C17)",
+      "userId": "USR-027",
+      "createdAt": "2026-09-12T05:51:38.046Z"
+    },
+    {
+      "dose": 12.7,
+      "kubelkaMunk": 0.018,
+      "reflectance": 0.82,
+      "badgeId": "H2S-001",
+      "batchId": "H2S-2026-001",
+      "id": "SCN-1611",
+      "userId": "USR-GUEST",
+      "workerName": "Worker",
+      "createdAt": "2026-09-11T15:48:19.478Z"
+    },
+    {
+      "id": "SCN-5876",
+      "date": "11 Sep 2026",
+      "isoDate": "2026-09-11",
+      "time": "21:06",
+      "shift": "08:00–16:00",
+      "workerId": "USR-7805",
+      "workerName": "Osman Sanjar",
+      "badgeId": "H2S-W-853",
+      "batchId": "H2S-2026-001",
+      "dose": 607.1,
+      "uncertainty": 1.4,
+      "status": "Saturated (>240 ppm·h)",
+      "quality": "Good",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "deltaE": 95.3,
+      "calibration": "C17",
+      "userId": "USR-7805",
+      "createdAt": "2026-09-11T15:36:14.872Z"
+    },
+    {
+      "id": "SCN-1092",
+      "userId": "USR-027",
+      "date": "11 Sep 2026",
+      "isoDate": "2026-09-11",
+      "time": "16:08",
+      "shift": "08:00–16:00",
+      "workerId": "W-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-001",
+      "batchId": "H2S-2026-001",
+      "dose": 12.7,
+      "uncertainty": 1.4,
+      "status": "Valid",
+      "quality": "Good",
+      "rgb": {
+        "r": 138,
+        "g": 90,
+        "b": 42
+      },
+      "deltaE": 24.8,
+      "calibration": "C17"
+    },
+    {
+      "id": "SCN-1088",
+      "userId": "USR-027",
+      "date": "10 Sep 2026",
+      "isoDate": "2026-09-10",
+      "time": "16:05",
+      "shift": "08:00–16:00",
+      "workerId": "W-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-097",
+      "batchId": "H2S-2026-001",
+      "dose": 8.2,
+      "uncertainty": 1.4,
+      "status": "Valid",
+      "quality": "Good",
+      "rgb": {
+        "r": 165,
+        "g": 120,
+        "b": 65
+      },
+      "deltaE": 17.5,
+      "calibration": "C17"
+    },
+    {
+      "id": "SCN-1044",
+      "userId": "USR-014",
+      "date": "11 Sep 2026",
+      "isoDate": "2026-09-11",
+      "time": "15:45",
+      "shift": "08:00–16:00",
+      "workerId": "W-014",
+      "workerName": "Suresh Patil",
+      "badgeId": "H2S-002",
+      "batchId": "H2S-2026-001",
+      "dose": 32.4,
+      "uncertainty": 1.4,
+      "status": "Valid",
+      "quality": "Good",
+      "rgb": {
+        "r": 90,
+        "g": 50,
+        "b": 20
+      },
+      "deltaE": 48.2,
+      "calibration": "C17"
+    }
+  ],
+  "alerts": [
+    {
+      "id": "ALT-636",
+      "title": "Elevated dose logged (79.5 ppm·h)",
+      "detail": "Ramesh Kadam · Badge H2S-W-027 logged elevated exposure",
+      "sev": "Critical",
+      "time": "Just now",
+      "workerId": "USR-027",
+      "acknowledged": false
+    },
+    {
+      "id": "ALT-831",
+      "title": "Elevated dose logged (607.1 ppm·h)",
+      "detail": "Osman Sanjar · Badge H2S-W-853 logged elevated exposure",
+      "sev": "Critical",
+      "time": "Just now",
+      "workerId": "USR-7805",
+      "acknowledged": false
+    },
+    {
+      "id": "ALT-001",
+      "title": "Repeated elevated exposure — requires review",
+      "detail": "W-014 Suresh Patil · 3 shifts above threshold (32.4 ppm·h)",
+      "sev": "Critical",
+      "time": "2h ago",
+      "workerId": "W-014",
+      "acknowledged": false
+    }
+  ]
+}

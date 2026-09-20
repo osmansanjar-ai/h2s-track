@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>H₂S-Track — Scan. Track. Protect.</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHBhdGggZD0iTTIwIDNMNiA4VjE5QzYgMjcuNSAxMiAzNC41IDIwIDM3QzI4IDM0LjUgMzQgMjcuNSAzNCAxOVY4TDIwIDNaIiBmaWxsPSIjMEYxNzJBIiBzdHJva2U9IiNGNTlFMEIiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTEzIDIwQzEzIDE2LjEgMTYuMSAxMyAyMCAxM0MyMy45IDEzIDI3IDE2LjEgMjcgMjAiIHN0cm9rZT0iI0YwQzQxOSIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWRhc2hhcnJheT0iMiAxLjUiLz48bGluZSB4MT0iMjAiIHkxPSIxOCIgeDI9IjE2IiB5Mj0iMjMiIHN0cm9rZT0iIzk0QTNCOCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48bGluZSB4MT0iMjAiIHkxPSIxOCIgeDI9IjI0IiB5Mj0iMjMiIHN0cm9rZT0iIzk0QTNCOCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjE3IiByPSIzLjIiIGZpbGw9IiNGNTlFMEIiLz48Y2lyY2xlIGN4PSIxNS41IiBjeT0iMjMuNSIgcj0iMi4yIiBmaWxsPSIjRjhGQUZDIi8+PGNpcmNsZSBjeD0iMjQuNSIgY3k9IjIzLjUiIHI9IjIuMiIgZmlsbD0iI0Y4RkFGQyIvPjxjaXJjbGUgY3g9IjIwIiBjeT0iMzAiIHI9IjIuNSIgZmlsbD0iIzEwQjk4MSIvPjwvc3ZnPg==">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2026">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2026">
+  <link rel="shortcut icon" href="/favicon.ico?v=2026">
+  <link rel="apple-touch-icon" href="/favicon.png?v=2026">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#F0C419">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="H2S-Track">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="antialiased">
+
+<div x-data="app" x-init="init()" x-cloak class="min-h-screen">
+
+  <!-- ============ REJECTION UI MODAL ============ -->
+  <div x-show="rejectionModal.active" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
+    <div class="bg-white border border-line rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div class="w-12 h-12 rounded-full bg-red-100 border border-red-300 text-red-600 flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="shield-alert" class="w-6 h-6"></i>
+      </div>
+      
+      <h3 class="font-display font-extrabold text-lg text-center text-ink mb-1">
+        <span x-show="rejectionModal.code==='BADGE_EXPIRED'">⚠ BADGE EXPIRED</span>
+        <span x-show="rejectionModal.code==='QUALITY_FAILED'">⚠ IMAGE QUALITY INSUFFICIENT</span>
+        <span x-show="rejectionModal.code==='GEOMETRY_MISMATCH'">⚠ SENSOR NOT DETECTED</span>
+        <span x-show="rejectionModal.code!=='BADGE_EXPIRED' && rejectionModal.code!=='QUALITY_FAILED' && rejectionModal.code!=='GEOMETRY_MISMATCH'">⚠ BADGE NOT AUTHENTICATED</span>
+      </h3>
+
+      <p class="text-xs text-center text-ink/70 leading-relaxed mb-4 px-2" x-text="rejectionModal.reason || 'This image does not contain a verified H₂S-Track badge. Exposure analysis has been blocked.'"></p>
+
+      <div class="p-3 rounded-xl bg-amber-50 border border-amber-200/60 text-[11px] text-amber-900 mb-5 flex items-start gap-2">
+        <i data-lucide="info" class="w-4 h-4 shrink-0 text-amber-600 mt-0.5"></i>
+        <span>The XGBoost ML model requires strict badge verification. Please photograph the complete physical H₂S-Track wristband under good lighting.</span>
+      </div>
+
+      <div class="flex gap-2">
+        <button @click="rejectionModal.active=false" class="flex-1 py-2.5 rounded-xl border border-line bg-paper text-ink font-bold text-xs hover:bg-black/5 transition">
+          Close
+        </button>
+        <button @click="rejectionModal.active=false; startScan()" class="flex-1 py-2.5 rounded-xl bg-yellow-DEFAULT text-ink font-bold text-xs hover:brightness-95 transition shadow-xs flex items-center justify-center gap-1.5">
+          <i data-lucide="camera" class="w-3.5 h-3.5"></i> Retake Photo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ QR CODE GENERATOR MODAL ============ -->
+  <div x-show="qrModal.active" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
+    <div class="bg-white border border-line rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div class="flex items-center justify-between mb-4 border-b border-line pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="qr-code" class="w-5 h-5 text-amber-500"></i>
+          <h3 class="font-display font-extrabold text-base text-ink">Badge QR Code Generator</h3>
+        </div>
+        <button @click="qrModal.active=false" class="text-ink/40 hover:text-ink font-bold text-lg">&times;</button>
+      </div>
+
+      <p class="text-xs text-ink/70 mb-4">Generate and scan registered H₂S-Track badge QR codes for live camera and upload photo authentication testing.</p>
+
+      <div class="space-y-3 mb-5">
+        <div>
+          <label class="text-xs font-semibold text-ink/70 mb-1 block">Registered Badge ID</label>
+          <select x-model="qrModal.badgeId" class="w-full rounded-lg border border-line px-3 py-2 text-xs font-bold text-ink focus:outline-none focus:ring-1 focus:ring-amber-500 bg-paper">
+            <option value="H2S-001">Badge H2S-001 (Ramesh Kadam)</option>
+            <option value="H2S-002">Badge H2S-002 (Suresh Patil)</option>
+            <option value="H2S-071">Badge H2S-071 (Batch H2S-2026-002)</option>
+            <option value="H2S-003">Badge H2S-003 (Unassigned Stock)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-ink/70 mb-1 block">Batch Identifier</label>
+          <input type="text" x-model="qrModal.batchId" class="w-full rounded-lg border border-line px-3 py-2 text-xs font-mono font-semibold text-ink bg-paper" readonly>
+        </div>
+      </div>
+
+      <!-- Rendered QR Code Preview -->
+      <div class="bg-paper border border-line rounded-xl p-4 flex flex-col items-center justify-center mb-5">
+        <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=H2S-Track%7C' + qrModal.badgeId + '%7C' + qrModal.batchId"
+             alt="Badge QR Code"
+             class="w-44 h-44 rounded-lg bg-white p-2 border border-line shadow-xs">
+        <p class="font-mono text-[11px] text-ink/60 font-semibold mt-2" x-text="'H2S-Track|' + qrModal.badgeId + '|' + qrModal.batchId"></p>
+      </div>
+
+      <div class="flex gap-2">
+        <button @click="qrModal.active=false" class="flex-1 py-2.5 rounded-xl border border-line bg-paper text-ink font-bold text-xs hover:bg-black/5 transition">
+          Close
+        </button>
+        <a :href="'https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=H2S-Track%7C' + qrModal.badgeId + '%7C' + qrModal.batchId"
+           target="_blank" download="H2S_Badge_QR.png"
+           class="flex-1 py-2.5 rounded-xl bg-yellow-DEFAULT text-ink font-bold text-xs text-center hover:brightness-95 transition shadow-xs flex items-center justify-center gap-1.5">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i> Download QR
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LANDING (DESKTOP WEB ENTRY) ============ -->
+  <template x-if="view==='landing'">
+    <div class="bg-paper min-h-screen flex flex-col justify-between">
+      <div>
+        <!-- Nav -->
+        <header class="max-w-6xl mx-auto flex items-center justify-between px-6 py-6">
+          <div class="flex items-center gap-2.5">
+            <svg width="30" height="30" viewBox="0 0 32 32" fill="none" class="shrink-0 drop-shadow-xs">
+  <rect width="32" height="32" rx="9" fill="url(#h2sLogoGrad)"/>
+  <circle cx="16" cy="16" r="8.5" stroke="white" stroke-width="2" stroke-opacity="0.95"/>
+  <circle cx="16" cy="16" r="4" fill="white"/>
+  <circle cx="16" cy="16" r="1.8" fill="#0F172A"/>
+  <path d="M22.5 9.5C24.2 11.2 25 13.5 25 16" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.85"/>
+  <defs>
+    <linearGradient id="h2sLogoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#B45309"/>
+    </linearGradient>
+  </defs>
+</svg>
+            <span class="font-display font-extrabold text-lg tracking-tight">H₂S-Track</span>
+          </div>
+          <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-ink/70">
+            <a href="#how" class="hover:text-ink transition" x-text="t('howItWorks')">How it works</a>
+            <a href="#why" class="hover:text-ink transition" x-text="t('whyH2STrack')">Why H₂S-Track</a>
+
+            <!-- Language Selector Dropdown -->
+            <div class="relative">
+              <select :value="lang" @change="setLang($event.target.value)" 
+                class="appearance-none bg-white border border-line text-ink text-xs font-semibold rounded-lg pl-3 pr-7 py-1.5 cursor-pointer hover:border-amber-400 transition shadow-xs focus:outline-none focus:ring-1 focus:ring-amber-500">
+                <option value="en">🇬🇧 English</option>
+                <option value="hi">🇮🇳 हिंदी (Hindi)</option>
+                <option value="mr">🇮🇳 मराठी (Marathi)</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-ink/50">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+              </div>
+            </div>
+
+            <button @click="authMode='login'; view='login'" class="text-ink hover:underline font-semibold" x-text="t('signIn')">Sign in</button>
+            <button @click="authMode='signup'; view='login'" class="rounded-lg bg-yellow-DEFAULT text-ink px-4 py-2 font-semibold hover:brightness-95 transition shadow-sm" x-text="t('createAccount')">
+              Create Account
+            </button>
+          </nav>
+          <div class="flex items-center gap-2.5 md:hidden">
+            <!-- Language Selector Mobile -->
+            <div class="relative">
+              <select :value="lang" @change="setLang($event.target.value)" 
+                class="appearance-none bg-white border border-line text-ink text-[11px] font-bold rounded-md pl-2 pr-5 py-1 cursor-pointer focus:outline-none">
+                <option value="en">🇬🇧 EN</option>
+                <option value="hi">🇮🇳 हि</option>
+                <option value="mr">🇮🇳 म</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-ink/50">
+                <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+              </div>
+            </div>
+            <button @click="authMode='login'; view='login'" class="text-xs font-semibold text-ink" x-text="t('signIn')">Sign in</button>
+            <button @click="authMode='signup'; view='login'" class="text-xs font-bold bg-yellow-DEFAULT text-ink px-2.5 py-1.5 rounded-md" x-text="t('createAccount')">Sign up</button>
+          </div>
+        </header>
+
+        <!-- Hero -->
+        <section class="max-w-6xl mx-auto px-6 pt-6 pb-16 grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-semibold mb-4">
+              <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> Mobile Reader & Shift Dosimetry
+            </div>
+            <h1 class="font-display font-extrabold text-[2.6rem] leading-[1.08] tracking-tight" x-text="t('heroTitle')">Passive H₂S exposure.<br>Digitally measured.</h1>
+            <div class="track-underline mt-5 mb-6"></div>
+            <p class="text-ink/70 text-lg leading-relaxed max-w-md" x-text="t('heroSubtitle')">A battery-free passive dosimeter with smartphone-based quantitative colorimetry reading for cumulative hydrogen sulfide exposure.</p>
+            <div class="flex flex-wrap gap-3 mt-8">
+              <button @click="startScan()" class="inline-flex items-center gap-2 rounded-lg bg-yellow-DEFAULT text-ink font-semibold px-5 py-3 hover:brightness-95 transition shadow-sm">
+                <i data-lucide="scan-line" class="w-4 h-4"></i> <span x-text="t('scanABadge')">Scan a badge</span>
+              </button>
+              <button @click="authMode='signup'; view='login'" class="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-5 py-3 font-semibold hover:bg-black/[0.02] transition shadow-sm" x-text="t('registerFresh')">
+                Register Fresh Account
+              </button>
+            </div>
+          </div>
+          <!-- Wristband visual -->
+          <div class="relative flex justify-center">
+            <svg viewBox="0 0 340 240" class="w-full max-w-sm drop-shadow-md">
+              <path d="M40 120 C 40 50, 300 50, 300 120 C 300 190, 40 190, 40 120 Z" fill="#F0C419"/>
+              <rect x="100" y="72" width="140" height="96" rx="14" fill="white" stroke="#1C1E21" stroke-width="1.5"/>
+              <rect x="112" y="84" width="116" height="26" rx="4" fill="#EFE3D0" stroke="#DDC49B"/>
+              <rect x="114" y="86" width="14" height="22" fill="#F7F0E4"/>
+              <rect x="128" y="86" width="14" height="22" fill="#DDC49B"/>
+              <rect x="142" y="86" width="14" height="22" fill="#C79F62"/>
+              <rect x="156" y="86" width="14" height="22" fill="#A9793F"/>
+              <rect x="170" y="86" width="14" height="22" fill="#8A5A2A"/>
+              <rect x="184" y="86" width="14" height="22" fill="#6B441F"/>
+              <rect x="198" y="86" width="14" height="22" fill="#4A2E15"/>
+              <circle cx="150" cy="132" r="13" fill="#2F9E52" stroke="#1C1E21" stroke-width="1.2"/>
+              <rect x="176" y="120" width="38" height="24" rx="3" fill="#1C1E21"/>
+              <rect x="181" y="125" width="6" height="6" fill="white"/><rect x="189" y="125" width="6" height="6" fill="white"/><rect x="197" y="125" width="6" height="6" fill="white"/>
+              <rect x="181" y="133" width="6" height="6" fill="white"/><rect x="197" y="133" width="6" height="6" fill="white"/>
+              <text x="120" y="158" font-family="Inter" font-size="7" fill="#1C1E21" opacity="0.6">H2S-2026-001 · BATCH C17</text>
+            </svg>
+          </div>
+        </section>
+
+        <!-- How it works (5 Steps) -->
+        <section id="how" class="bg-white border-y border-line py-16">
+          <div class="max-w-6xl mx-auto px-6">
+            <h2 class="font-display font-bold text-2xl mb-10">How it works</h2>
+            <div class="grid md:grid-cols-5 gap-6">
+              <template x-for="(s,i) in [
+                {t:'Wear', d:'Worker wears the badge for the full shift.', icon:'hand'},
+                {t:'Exposure', d:'The sensing strip reacts to ambient H₂S over time.', icon:'flask-conical'},
+                {t:'Scan', d:'Photograph the badge with a phone at shift end.', icon:'scan-line'},
+                {t:'Quantify', d:'Color response is converted to a calibrated dose.', icon:'sliders-horizontal'},
+                {t:'Record', d:'The estimate is logged to the worker\'s history.', icon:'database'},
+              ]">
+                <div class="bg-paper p-5 rounded-xl border border-line shadow-card">
+                  <div class="w-10 h-10 rounded-lg bg-white border border-line flex items-center justify-center mb-4 shadow-sm">
+                    <i :data-lucide="s.icon" class="w-5 h-5 text-amber-500"></i>
+                  </div>
+                  <p class="font-semibold text-sm mb-1" x-text="(i+1)+'. '+s.t"></p>
+                  <p class="text-xs text-ink/60 leading-relaxed" x-text="s.d"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+        </section>
+
+        <!-- Why H₂S-Track (6 Features) -->
+        <section id="why" class="max-w-6xl mx-auto px-6 py-16">
+          <h2 class="font-display font-bold text-2xl mb-10">Why H₂S-Track</h2>
+          <div class="grid sm:grid-cols-3 gap-4">
+            <template x-for="f in ['Battery-free','Passive','Disposable','Smartphone-readable','Batch-calibrated','Validity-aware']">
+              <div class="rounded-xl border border-line bg-white p-5 shadow-card flex items-center gap-3">
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-go"></i>
+                <p class="font-semibold text-sm" x-text="f"></p>
+              </div>
+            </template>
+          </div>
+        </section>
+      </div>
+
+      <footer class="border-t border-line bg-white">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between text-xs text-ink/50 gap-4">
+          <span>H₂S-Track is a passive exposure dosimeter, not an emergency gas alarm. Use certified real-time detection equipment for immediate hazard alerts.</span>
+          <span class="font-mono text-[11px]">Industrial Safety System</span>
+        </div>
+      </footer>
+    </div>
+  </template>
+
+  <!-- ============ LOGIN / SIGN-UP AUTHENTICATION ============ -->
+  <template x-if="view==='login'">
+    <div class="min-h-screen flex items-center justify-center bg-paper px-6 py-8">
+      <div class="w-full max-w-md">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-2.5">
+            <svg width="30" height="30" viewBox="0 0 32 32" fill="none" class="shrink-0 drop-shadow-xs">
+  <rect width="32" height="32" rx="9" fill="url(#h2sLogoGrad)"/>
+  <circle cx="16" cy="16" r="8.5" stroke="white" stroke-width="2" stroke-opacity="0.95"/>
+  <circle cx="16" cy="16" r="4" fill="white"/>
+  <circle cx="16" cy="16" r="1.8" fill="#0F172A"/>
+  <path d="M22.5 9.5C24.2 11.2 25 13.5 25 16" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.85"/>
+  <defs>
+    <linearGradient id="h2sLogoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#B45309"/>
+    </linearGradient>
+  </defs>
+</svg>
+            <span class="font-display font-extrabold text-xl">H₂S-Track</span>
+          </div>
+
+          <!-- Language Selector -->
+          <div class="relative">
+            <select :value="lang" @change="setLang($event.target.value)" 
+              class="appearance-none bg-white border border-line text-ink text-xs font-semibold rounded-lg pl-2.5 pr-6 py-1.5 cursor-pointer hover:border-amber-400 transition shadow-xs focus:outline-none">
+              <option value="en">🇬🇧 English</option>
+              <option value="hi">🇮🇳 हिंदी</option>
+              <option value="mr">🇮🇳 मराठी</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-ink/50">
+              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auth Card -->
+        <div class="bg-white border border-line rounded-2xl shadow-card p-7">
+          
+          <!-- Mode Tabs -->
+          <div class="flex bg-paper p-1 rounded-xl border border-line mb-6">
+            <button @click="authMode='login'; authError=''" class="flex-1 py-2 text-xs font-bold rounded-lg transition"
+              :class="authMode==='login' ? 'bg-white text-ink shadow-sm' : 'text-ink/50 hover:text-ink'" x-text="t('signIn')">
+              Sign In
+            </button>
+            <button @click="authMode='signup'; authError=''" class="flex-1 py-2 text-xs font-bold rounded-lg transition"
+              :class="authMode==='signup' ? 'bg-white text-ink shadow-sm' : 'text-ink/50 hover:text-ink'" x-text="t('createAccount')">
+              Create Account
+            </button>
+          </div>
+
+          <!-- Error Banner -->
+          <div x-show="authError" class="mb-4 p-3 rounded-lg bg-bad-bg border border-bad/30 text-bad text-xs font-semibold flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+            <span x-text="authError"></span>
+          </div>
+
+          <!-- SIGN IN FORM -->
+          <div x-show="authMode==='login'">
+            <h2 class="font-display font-bold text-lg mb-1" x-text="t('welcomeBack')">Welcome back</h2>
+            <p class="text-xs text-ink/60 mb-5" x-text="t('authSubtitle')">Sign in to your site exposure account.</p>
+
+            <form @submit.prevent="handleLogin()">
+              <label class="text-xs font-semibold text-ink/70" x-text="t('emailAddress')">Work Email / Gmail</label>
+              <input type="email" x-model="loginEmail" placeholder="you@company.com" required
+                class="w-full mt-1 mb-4 rounded-lg border border-line px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-DEFAULT">
+
+              <label class="text-xs font-semibold text-ink/70" x-text="t('password')">Password</label>
+              <input type="password" x-model="loginPassword" placeholder="••••••••" required
+                class="w-full mt-1 mb-5 rounded-lg border border-line px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-DEFAULT">
+
+              <button type="submit" :disabled="authLoading"
+                class="w-full rounded-xl bg-ink text-white font-bold py-3 text-sm hover:bg-black transition shadow-sm flex items-center justify-center gap-2">
+                <span x-show="!authLoading" x-text="t('signIn')">Sign In</span>
+                <span x-show="authLoading" class="animate-pulse">Authenticating…</span>
+              </button>
+            </form>
+
+            <div class="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-900 space-y-2">
+              <p class="font-bold flex items-center justify-between">
+                <span>⚡ 1-Click Demo Sign In:</span>
+                <span class="text-[10px] text-amber-700 font-normal">No typing required</span>
+              </p>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" @click="quickLogin('ramesh@panvel-gas.com', 'password123')"
+                  class="py-2 px-2.5 rounded-lg border border-amber-300 bg-white text-ink text-[11px] font-bold hover:bg-amber-100 transition flex items-center justify-center gap-1 shadow-xs">
+                  <span>👷 Ramesh (Worker)</span>
+                </button>
+                <button type="button" @click="quickLogin('officer@panvel-gas.com', 'password123')"
+                  class="py-2 px-2.5 rounded-lg border border-amber-300 bg-white text-ink text-[11px] font-bold hover:bg-amber-100 transition flex items-center justify-center gap-1 shadow-xs">
+                  <span>🛡️ Officer Sharma</span>
+                </button>
+              </div>
+              <p class="text-amber-800 pt-1 border-t border-amber-200/60 font-medium" x-text="t('demoTip')">✨ Tip: Click Create Account above to register your fresh account with 0 scans!</p>
+            </div>
+          </div>
+
+          <!-- SIGN UP FORM -->
+          <div x-show="authMode==='signup'">
+            <h2 class="font-display font-bold text-lg mb-1" x-text="t('createAccount')">Create a Fresh Account</h2>
+            <p class="text-xs text-ink/60 mb-5" x-text="t('freshAccountNoScans')">Register your worker account. It will start with 0 scans!</p>
+
+            <form @submit.prevent="handleSignup()">
+              <label class="text-xs font-semibold text-ink/70" x-text="t('fullName')">Full Name</label>
+              <input type="text" x-model="signupName" placeholder="e.g. Osman Sanjar" required
+                class="w-full mt-1 mb-3.5 rounded-lg border border-line px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-DEFAULT">
+
+              <label class="text-xs font-semibold text-ink/70" x-text="t('emailAddress')">Email Address (Gmail / Work)</label>
+              <input type="email" x-model="signupEmail" placeholder="osman@gmail.com" required
+                class="w-full mt-1 mb-3.5 rounded-lg border border-line px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-DEFAULT">
+
+              <label class="text-xs font-semibold text-ink/70" x-text="t('password')">Password</label>
+              <input type="password" x-model="signupPassword" placeholder="Minimum 6 characters" required minlength="6"
+                class="w-full mt-1 mb-3.5 rounded-lg border border-line px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-DEFAULT">
+
+              <label class="text-xs font-semibold text-ink/70" x-text="t('selectRole')">Account Role</label>
+              <select x-model="signupRole" class="w-full mt-1 mb-5 rounded-lg border border-line px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-DEFAULT font-medium">
+                <option value="worker" x-text="t('roleWorker')">Field Worker / Plant Operator</option>
+                <option value="officer" x-text="t('roleOfficer')">Safety Officer / EHS Manager</option>
+              </select>
+
+              <button type="submit" :disabled="authLoading"
+                class="w-full rounded-xl bg-yellow-DEFAULT text-ink font-bold py-3 text-sm hover:brightness-95 transition shadow-sm flex items-center justify-center gap-2">
+                <span x-show="!authLoading" x-text="t('createFreshAccountBtn')">Create Fresh Account</span>
+                <span x-show="authLoading" class="animate-pulse" x-text="t('registeringAccount')">Registering Account…</span>
+              </button>
+            </form>
+          </div>
+
+        </div>
+
+        <button @click="view='landing'" class="text-xs font-semibold text-ink/50 mt-6 mx-auto block hover:text-ink">← View full web overview</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- ============ APP SHELL ============ -->
+  <template x-if="['home','scan','result','history','officer','badges','alerts','database'].includes(view)">
+    <div class="min-h-screen md:flex bg-paper">
+
+      <!-- Desktop Sidebar -->
+      <aside class="hidden md:flex md:flex-col md:w-64 md:shrink-0 border-r border-line bg-white px-4 py-6">
+        <div class="flex items-center gap-2.5 px-2 mb-6">
+          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" class="shrink-0 drop-shadow-xs">
+  <rect width="32" height="32" rx="9" fill="url(#h2sLogoGrad)"/>
+  <circle cx="16" cy="16" r="8.5" stroke="white" stroke-width="2" stroke-opacity="0.95"/>
+  <circle cx="16" cy="16" r="4" fill="white"/>
+  <circle cx="16" cy="16" r="1.8" fill="#0F172A"/>
+  <path d="M22.5 9.5C24.2 11.2 25 13.5 25 16" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.85"/>
+  <defs>
+    <linearGradient id="h2sLogoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#B45309"/>
+    </linearGradient>
+  </defs>
+</svg>
+          <span class="font-display font-extrabold text-base">H₂S-Track</span>
+        </div>
+
+        <!-- User Profile Card -->
+        <div class="bg-paper p-3 rounded-xl border border-line mb-4 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center shrink-0 text-sm shadow-sm">
+            <span x-text="currentUser ? currentUser.name.charAt(0).toUpperCase() : 'W'"></span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold text-ink truncate" x-text="currentUser ? currentUser.name : 'Ramesh Kadam'"></p>
+            <p class="text-[10px] text-ink/50 truncate capitalize" x-text="currentUser ? currentUser.role + ' · ' + (currentUser.unit || 'Panvel') : 'Operator'"></p>
+          </div>
+        </div>
+
+        <!-- Language Switcher Bar -->
+        <div class="mb-5 flex items-center justify-between bg-paper p-2 rounded-xl border border-line">
+          <span class="text-[11px] font-semibold text-ink/70 flex items-center gap-1.5">
+            <i data-lucide="globe" class="w-3.5 h-3.5 text-amber-500"></i>
+            <span x-text="t('language')">Language</span>
+          </span>
+          <select :value="lang" @change="setLang($event.target.value)" 
+            class="appearance-none bg-white border border-line text-ink text-xs font-bold rounded-lg px-2 py-1 cursor-pointer focus:outline-none">
+            <option value="en">🇬🇧 EN</option>
+            <option value="hi">🇮🇳 हिंदी</option>
+            <option value="mr">🇮🇳 मराठी</option>
+          </select>
+        </div>
+
+        <nav class="flex flex-col gap-1.5 text-sm">
+          <template x-for="item in role==='worker' ? navWorkerItems : navOfficerItems" :key="item.v">
+            <button @click="view=item.v" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-left transition"
+              :class="view===item.v ? 'bg-yellow-DEFAULT text-ink shadow-sm' : 'text-ink/60 hover:bg-paper hover:text-ink'">
+              <i :data-lucide="item.icon" class="w-4 h-4"></i>
+              <span x-text="item.label"></span>
+            </button>
+          </template>
+        </nav>
+
+        <div class="mt-auto pt-6 border-t border-line space-y-2">
+          <button @click="role = role==='worker' ? 'officer' : 'worker'; view = 'home'; $nextTick(() => renderIcons())"
+            class="w-full flex items-center justify-between text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-2 rounded-lg transition hover:bg-amber-100 border border-amber-200">
+            <span>Toggle <span x-text="role==='worker' ? 'Safety Officer' : 'Worker'"></span> View</span>
+            <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <button @click="logout()" class="w-full flex items-center gap-2 text-xs font-semibold text-bad hover:bg-bad-bg px-3 py-2 rounded-lg transition">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            <span>Sign out</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content Container -->
+      <div class="flex-1 min-w-0 pb-28 md:pb-8">
+
+        <!-- Header Bar for Mobile -->
+        <div class="md:hidden bg-white border-b border-line px-4 py-2.5 flex items-center justify-between shadow-xs sticky top-0 z-20">
+          <div class="flex items-center gap-2">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" class="shrink-0 drop-shadow-xs">
+  <rect width="32" height="32" rx="9" fill="url(#h2sLogoGrad)"/>
+  <circle cx="16" cy="16" r="8.5" stroke="white" stroke-width="2" stroke-opacity="0.95"/>
+  <circle cx="16" cy="16" r="4" fill="white"/>
+  <circle cx="16" cy="16" r="1.8" fill="#0F172A"/>
+  <path d="M22.5 9.5C24.2 11.2 25 13.5 25 16" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.85"/>
+  <defs>
+    <linearGradient id="h2sLogoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#B45309"/>
+    </linearGradient>
+  </defs>
+</svg>
+            <span class="font-display font-bold text-sm">H₂S-Track</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <select :value="lang" @change="setLang($event.target.value)" 
+              class="bg-paper border border-line text-ink text-[11px] font-bold rounded-md px-1.5 py-0.5 focus:outline-none">
+              <option value="en">🇬🇧 EN</option>
+              <option value="hi">🇮🇳 हि</option>
+              <option value="mr">🇮🇳 म</option>
+            </select>
+            <span class="text-xs font-bold text-ink truncate max-w-[85px]" x-text="currentUser ? currentUser.name : 'Ramesh'"></span>
+            <button @click="logout()" class="text-xs text-bad font-semibold ml-0.5" x-text="t('signOut')">Sign out</button>
+          </div>
+        </div>
+
+        <!-- ===== WORKER HOME ===== -->
+        <template x-if="view==='home' && role==='worker'">
+          <div class="max-w-2xl mx-auto px-5 pt-6 md:pt-10">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <p class="text-sm text-ink/60"><span x-text="t('goodDay')">Good day,</span> <span class="font-semibold text-ink" x-text="currentUser ? currentUser.name : 'Ramesh Kadam'"></span></p>
+                <div class="flex items-center gap-2 text-xs text-ink/50 mt-0.5">
+                  <span x-text="currentUser ? currentUser.site : 'Panvel Gas Terminal'"></span> · <span>Shift: 08:00–16:00</span>
+                </div>
+              </div>
+              <button @click="exportCSV()" class="inline-flex items-center gap-1.5 border border-line bg-white rounded-lg px-3 py-1.5 text-xs font-semibold hover:bg-paper transition shadow-sm">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> <span x-text="t('exportCsv')">Export CSV</span>
+              </button>
+            </div>
+
+            <!-- Hero Exposure Card -->
+            <div class="rounded-2xl border border-line bg-white shadow-card overflow-hidden mb-5">
+              <div class="grain-band px-6 pt-6 pb-5" style="background:linear-gradient(180deg,#FBF7EE, #FFFFFF)">
+                <div class="flex items-center justify-between mb-2">
+                  <p class="text-xs font-semibold text-ink/50 uppercase" x-text="t('latestShiftExposure')">LATEST SHIFT EXPOSURE</p>
+                  <span class="text-[10px] font-semibold bg-white border border-line px-2 py-0.5 rounded text-amber-700" x-text="t('calibratedDosimetry')">
+                    Calibrated Dosimetry
+                  </span>
+                </div>
+                
+                <!-- If account has scans -->
+                <div x-show="lastScanResult">
+                  <div class="flex items-end gap-2">
+                    <span class="font-display font-extrabold text-5xl tracking-tight num-tabular" x-text="lastScanResult ? lastScanResult.dose : '0.0'"></span>
+                    <span class="text-sm font-medium text-ink/50 mb-1.5">ppm·h</span>
+                  </div>
+                  <p class="text-xs text-ink/50 mt-1" x-text="t('estimatedCumulative')">Estimated cumulative H₂S exposure</p>
+                  <span class="inline-flex items-center gap-1.5 mt-3 bg-go-bg text-go text-xs font-semibold px-2.5 py-1 rounded-md">
+                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> <span x-text="t('withinCalibratedRange')">WITHIN CALIBRATED RANGE</span>
+                  </span>
+                </div>
+
+                <!-- If FRESH ACCOUNT with 0 scans -->
+                <div x-show="!lastScanResult" class="py-2">
+                  <div class="flex items-end gap-2">
+                    <span class="font-display font-extrabold text-5xl tracking-tight num-tabular text-ink/40">0.0</span>
+                    <span class="text-sm font-medium text-ink/40 mb-1.5">ppm·h</span>
+                  </div>
+                  <p class="text-xs font-medium text-ink/60 mt-1" x-text="t('freshAccountNoScans')">Fresh account · No shift exposure logged yet</p>
+                  <span class="inline-flex items-center gap-1.5 mt-3 bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-md border border-amber-200">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> <span x-text="t('readyForFirstScan')">READY FOR FIRST SCAN</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Meter -->
+              <div class="px-6 py-5 border-t border-line">
+                <div class="relative h-3 rounded-full overflow-hidden" style="background:linear-gradient(90deg,#F7F0E4,#EFE3D0,#C79F62,#8A5A2A,#4A2E15)">
+                  <div class="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-ink shadow-md transition-all duration-300"
+                    :style="`left:${lastScanResult ? Math.min(95, Math.max(2, (lastScanResult.dose / 240) * 100)) : 2}%`"></div>
+                </div>
+                <div class="flex justify-between text-[11px] text-ink/45 mt-2 font-medium">
+                  <span>0 ppm·h (Fresh)</span><span>120 ppm·h</span><span>240 ppm·h (Max)</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-px bg-line border-t border-line text-xs">
+                <div class="bg-white px-5 py-3"><p class="text-ink/45" x-text="t('badgeIdLabel')">Badge ID</p><p class="font-semibold mt-0.5" x-text="lastScanResult ? lastScanResult.badgeId : 'H2S-UNASSIGNED'"></p></div>
+                <div class="bg-white px-5 py-3"><p class="text-ink/45" x-text="t('batchIdLabel')">Batch ID</p><p class="font-semibold mt-0.5" x-text="lastScanResult ? lastScanResult.batchId : 'H2S-2026-001'"></p></div>
+                <div class="bg-white px-5 py-3"><p class="text-ink/45" x-text="t('shiftLabel')">Shift</p><p class="font-semibold mt-0.5" x-text="lastScanResult ? lastScanResult.shift : '08:00–16:00'"></p></div>
+                <div class="bg-white px-5 py-3"><p class="text-ink/45" x-text="t('lastScanTimeLabel')">Last Scan Time</p><p class="font-semibold mt-0.5" x-text="lastScanResult ? lastScanResult.time : '—'"></p></div>
+              </div>
+            </div>
+
+            <button @click="startScan()" class="w-full flex items-center justify-center gap-2.5 rounded-xl bg-ink text-white font-bold py-4 mb-8 hover:bg-black transition shadow-md">
+              <svg class="w-5 h-5 text-yellow-DEFAULT" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+              </svg>
+              <span x-text="t('scanYourBadgeNow')">Scan your badge now</span>
+            </button>
+
+            <div class="flex items-center justify-between mb-3">
+              <p class="font-display font-bold text-sm" x-text="t('recentExposureHistory')">Recent Exposure History</p>
+              <button @click="view='history'" class="text-xs font-semibold text-amber-600 hover:underline" x-text="t('seeAll')">See all</button>
+            </div>
+
+            <!-- Zero State Banner for fresh accounts -->
+            <div x-show="history.length === 0" class="bg-white border border-line rounded-xl p-6 text-center shadow-card">
+              <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-2">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+              </div>
+              <p class="text-sm font-bold text-ink" x-text="t('noExposureScansLogged')">No Exposure Scans Logged Yet</p>
+              <p class="text-xs text-ink/50 mt-1 max-w-xs mx-auto" x-text="t('freshAccountSubtext')">This is a fresh account. Tap 'Scan your badge' above to record your very first dosimeter reading!</p>
+            </div>
+
+            <!-- History List when scans exist -->
+            <div x-show="history.length > 0" class="space-y-2">
+              <template x-for="r in history.slice(0,4)" :key="r.id">
+                <div class="flex items-center justify-between bg-white border border-line rounded-xl px-4 py-3 shadow-card">
+                  <div>
+                    <p class="text-sm font-semibold" x-text="r.date"></p>
+                    <p class="text-xs text-ink/45" x-text="r.shift + ' · Badge ' + r.badgeId"></p>
+                  </div>
+                  <p class="font-display font-bold text-sm num-tabular" x-text="r.dose + ' ppm·h'"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== BADGE SCANNER ===== -->
+        <template x-if="view==='scan'">
+          <div class="max-w-2xl mx-auto px-5 pt-6">
+            <div class="flex items-center justify-between mb-4">
+              <button @click="view='home'" class="inline-flex items-center gap-1.5 text-xs font-semibold text-ink/60 hover:text-ink">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> <span x-text="t('back')">Back</span>
+              </button>
+              <h2 class="font-display font-bold text-base" x-text="t('badgeReaderTitle')">H₂S-Track Badge Reader</h2>
+              <button @click="qrModal.active=true; $nextTick(() => renderIcons())" class="px-2.5 py-1.5 rounded-lg border border-line bg-white text-xs font-bold text-ink hover:bg-paper transition flex items-center gap-1.5 shadow-xs">
+                <i data-lucide="qr-code" class="w-3.5 h-3.5 text-amber-500"></i> QR Generator
+              </button>
+            </div>
+
+            <!-- Scanner Mode Switcher -->
+            <div class="flex gap-2 mb-4 bg-white p-1.5 rounded-xl border border-line shadow-card text-xs">
+              <button @click="scanSource='simulation'; renderSimulatedBadge()" class="flex-1 py-2 font-semibold rounded-lg transition"
+                :class="scanSource==='simulation' ? 'bg-yellow-DEFAULT text-ink shadow-sm' : 'text-ink/60 hover:text-ink'" x-text="t('interactiveSimulator')">
+                Interactive Simulator
+              </button>
+              <button @click="startCamera()" class="flex-1 py-2 font-semibold rounded-lg transition"
+                :class="scanSource==='camera' ? 'bg-yellow-DEFAULT text-ink shadow-sm' : 'text-ink/60 hover:text-ink'" x-text="t('liveCamera')">
+                Live Camera
+              </button>
+              <label class="flex-1 py-2 font-semibold rounded-lg text-center cursor-pointer transition"
+                :class="scanSource==='upload' ? 'bg-yellow-DEFAULT text-ink shadow-sm' : 'text-ink/60 hover:text-ink'">
+                <span x-text="t('uploadPhoto')">Upload Photo</span>
+                <input type="file" accept="image/*" @change="handleFileUpload($event)" class="hidden">
+              </label>
+            </div>
+
+            <!-- Live Camera Feed Overlay -->
+            <div x-show="scanSource==='camera'" class="relative bg-black rounded-2xl overflow-hidden aspect-[4/3] flex items-center justify-center border border-line shadow-lg mb-4">
+              <video id="cameraVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+              <div class="absolute inset-0 scan-frame pointer-events-none flex items-center justify-center">
+                <span class="corner top-0 left-0 border-t-[3px] border-l-[3px] rounded-tl-lg"></span>
+                <span class="corner top-0 right-0 border-t-[3px] border-r-[3px] rounded-tr-lg"></span>
+                <span class="corner bottom-0 left-0 border-b-[3px] border-l-[3px] rounded-bl-lg"></span>
+                <span class="corner bottom-0 right-0 border-b-[3px] border-r-[3px] rounded-br-lg"></span>
+                <p class="absolute bottom-4 text-center text-xs tracking-wider text-yellow-DEFAULT font-bold bg-black/60 px-3 py-1 rounded-full" x-text="t('centerBadgeInFrame')">CENTER BADGE IN FRAME</p>
+              </div>
+            </div>
+
+            <!-- Simulated Canvas / Upload Photo Reader -->
+            <div x-show="scanSource==='simulation' || scanSource==='upload'" class="relative bg-paper rounded-2xl overflow-hidden border border-line shadow-card p-4 mb-4 flex flex-col items-center">
+              
+              <!-- Upload dropzone prompt when no photo uploaded yet -->
+              <div x-show="scanSource==='upload' && !hasUploadedPhoto" class="w-full py-12 px-6 border-2 border-dashed border-line rounded-xl bg-white text-center cursor-pointer hover:border-amber-400 transition" @click="$refs.photoInput.click()">
+                <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3 border border-amber-200">
+                  <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                </div>
+                <p class="font-bold text-sm text-ink mb-1" x-text="t('chooseFile')">Choose Photo File</p>
+                <p class="text-xs text-ink/50 max-w-xs mx-auto">Upload a photo of the H₂S-Track wristband worn on hand/wrist or laid flat on desk</p>
+                <button class="mt-4 px-4 py-2 rounded-lg bg-yellow-DEFAULT text-ink text-xs font-bold shadow-xs">
+                  Browse File
+                </button>
+              </div>
+
+              <!-- Canvas when simulated or photo uploaded -->
+              <div x-show="scanSource==='simulation' || (scanSource==='upload' && hasUploadedPhoto)" class="w-full flex flex-col items-center">
+                <canvas id="simulatedBadgeCanvas" width="360" height="240" class="max-w-full rounded-xl drop-shadow-md bg-white"></canvas>
+
+                <div x-show="scanSource==='upload' && hasUploadedPhoto" class="mt-3 flex items-center justify-between w-full text-xs bg-white px-3.5 py-2 rounded-lg border border-line">
+                  <span class="font-semibold text-ink/70 flex items-center gap-1.5">
+                    <i data-lucide="image" class="w-4 h-4 text-amber-500"></i>
+                    <span x-text="uploadedPhotoName || 'Photo Loaded'"></span>
+                  </span>
+                  <button @click="$refs.photoInput.click()" class="text-amber-600 font-bold hover:underline text-[11px]">
+                    Change Photo
+                  </button>
+                </div>
+              </div>
+
+              <input type="file" ref="photoInput" accept="image/*" @change="handleFileUpload($event)" class="hidden">
+
+              <div x-show="scanSource==='simulation'" class="w-full mt-4 bg-white p-4 rounded-xl border border-line">
+                <div class="flex items-center justify-between text-xs mb-2">
+                  <span class="font-semibold text-ink/70" x-text="t('testDoseSimulator')">Test Dose Simulator:</span>
+                  <span class="font-display font-extrabold text-amber-600 num-tabular" x-text="simulatedDose + ' ppm·h'"></span>
+                </div>
+                <input type="range" min="0" max="240" step="0.5" x-model="simulatedDose" class="w-full accent-amber-500 cursor-pointer">
+                <div class="flex justify-between text-[10px] text-ink/40 mt-1 font-medium">
+                  <span>0 (Fresh)</span><span>60 (Moderate)</span><span>120 (High)</span><span>240 (Max)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Validation Error Alert Banner -->
+            <div x-show="scanValidationError" class="mb-4 p-3.5 rounded-xl bg-bad-bg border border-bad/30 text-bad text-xs font-semibold flex items-center gap-2.5 shadow-sm">
+              <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+              <span x-text="scanValidationError"></span>
+            </div>
+
+            <!-- Scanning Analysis Progress -->
+            <div class="bg-white border border-line rounded-2xl p-5 shadow-card mb-6">
+              <div class="space-y-2 mb-4">
+                <template x-for="(stg,i) in scanStages" :key="stg.label">
+                  <div class="flex items-center gap-2.5 text-xs">
+                    <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition"
+                      :class="scanStep > i ? 'bg-go text-white' : (scanStep===i ? 'bg-yellow-DEFAULT text-ink' : 'bg-line text-ink/30')">
+                      <i x-show="scanStep > i" data-lucide="check" class="w-3 h-3"></i>
+                      <div x-show="scanStep===i" class="w-2 h-2 rounded-full bg-ink animate-pulse"></div>
+                    </div>
+                    <span :class="scanStep >= i ? 'text-ink font-medium' : 'text-ink/40'" x-text="stg.label"></span>
+                  </div>
+                </template>
+              </div>
+
+              <button x-show="!scanning" @click="runScan()" class="w-full rounded-xl bg-yellow-DEFAULT text-ink font-bold py-3.5 hover:brightness-95 transition shadow-sm" x-text="t('captureCalculate')">
+                Capture & Calculate Shift Exposure
+              </button>
+              <p x-show="scanning" class="text-center text-xs font-semibold text-amber-600 animate-pulse py-2" x-text="t('analyzingReflectance')">
+                Analyzing sensor patch reflectance & color shift…
+              </p>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== RESULT ===== -->
+        <template x-if="view==='result'">
+          <div class="max-w-2xl mx-auto px-5 pt-8">
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-xs font-bold tracking-wider text-amber-600 uppercase" x-text="t('quantifiedShiftExposure')">Quantified Shift Exposure</p>
+              <button @click="exportPDF()" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition">
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> <span x-text="t('exportPdfCert')">Export PDF Certificate</span>
+              </button>
+            </div>
+
+            <div class="flex items-end gap-2 mb-4">
+              <span class="font-display font-extrabold text-5xl num-tabular text-ink" x-text="lastScanResult ? lastScanResult.dose : '0.0'"></span>
+              <span class="text-sm font-medium text-ink/50 mb-1.5">ppm·h</span>
+            </div>
+
+            <div class="rounded-2xl border border-line bg-white shadow-card divide-y divide-line mb-5">
+              <div class="px-5 py-4 flex items-center justify-between">
+                <div>
+                  <p class="text-xs text-ink/45 mb-1.5 font-medium" x-text="t('sampledSensorColor')">Sampled Sensor Patch Color</p>
+                  <div class="w-16 h-8 rounded-md border border-line shadow-inner"
+                    :style="`background: rgb(${lastScanResult ? lastScanResult.rgb.r : 247}, ${lastScanResult ? lastScanResult.rgb.g : 240}, ${lastScanResult ? lastScanResult.rgb.b : 228})`"></div>
+                </div>
+                <div>
+                  <p class="text-xs text-ink/45 mb-1.5 font-medium" x-text="t('calibratedScale')">Calibrated Reflectance Scale</p>
+                  <div class="flex rounded-md overflow-hidden border border-line w-32 h-8">
+                    <div class="flex-1" style="background:#F7F0E4"></div><div class="flex-1" style="background:#DDC49B"></div>
+                    <div class="flex-1" style="background:#C79F62"></div><div class="flex-1" style="background:#A9793F"></div>
+                    <div class="flex-1" style="background:#8A5A2A"></div><div class="flex-1" style="background:#4A2E15"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="px-5 py-4 flex items-center justify-between">
+                <span class="text-sm font-medium" x-text="t('controlValidity')">Control Patch Validity</span>
+                <span class="inline-flex items-center gap-1.5 bg-go-bg text-go text-xs font-semibold px-2.5 py-1 rounded-md">
+                  <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> <span x-text="t('validCalibrated')">VALID & CALIBRATED</span>
+                </span>
+              </div>
+              <div class="grid grid-cols-2 text-sm">
+                <div class="px-5 py-3.5 border-r border-line"><p class="text-xs text-ink/45" x-text="t('badgeSerial')">Badge Serial</p><p class="font-semibold mt-0.5" x-text="lastScanResult ? lastScanResult.badgeId : 'H2S-001'"></p></div>
+                <div class="px-5 py-3.5"><p class="text-xs text-ink/45" x-text="t('batchCalibration')">Batch Calibration</p><p class="font-semibold mt-0.5" x-text="lastScanResult ? lastScanResult.batchId : 'H2S-2026-001'"></p></div>
+                <div class="px-5 py-3.5 border-r border-t border-line"><p class="text-xs text-ink/45" x-text="t('workerAccount')">Worker Account</p><p class="font-semibold mt-0.5" x-text="lastScanResult ? lastScanResult.workerName : (currentUser ? currentUser.name : 'Worker')"></p></div>
+                <div class="px-5 py-3.5 border-t border-line"><p class="text-xs text-ink/45" x-text="t('shiftPeriod')">Shift Period</p><p class="font-semibold mt-0.5" x-text="lastScanResult ? lastScanResult.shift : '08:00–16:00'"></p></div>
+                <div class="px-5 py-3.5 border-r border-t border-line"><p class="text-xs text-ink/45" x-text="t('measurementQuality')">Measurement Quality</p><p class="font-semibold mt-0.5 text-go">Good (±1.4 ppm·h)</p></div>
+                <div class="px-5 py-3.5 border-t border-line"><p class="text-xs text-ink/45" x-text="t('responseCurve')">Response Curve</p><p class="font-semibold mt-0.5">Batch C17 Standard</p></div>
+              </div>
+            </div>
+
+            <p class="text-xs text-ink/40 mb-6 leading-relaxed" x-text="t('isoStandards')">
+              Estimate derived from calibrated colorimetric response (Curve C17, ±1.4 ppm·h uncertainty). Certified under ISO/EHS shift dosimetry standards.
+            </p>
+
+            <div class="flex flex-col gap-2.5 mb-10">
+              <button @click="saveLastScan()" class="w-full rounded-xl bg-ink text-white font-semibold py-3.5 hover:bg-black transition shadow-sm" x-text="t('saveToDatabaseLog')">
+                Save to Database (Log Scan)
+              </button>
+              <button @click="startScan()" class="w-full rounded-xl border border-line bg-white font-semibold py-3.5 hover:bg-paper transition" x-text="t('scanAnotherBadge')">
+                Scan Another Badge
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== HISTORY ===== -->
+        <template x-if="view==='history'">
+          <div class="max-w-3xl mx-auto px-5 pt-8">
+            <div class="flex items-center justify-between mb-1">
+              <p class="font-display font-bold text-xl" x-text="t('exposureHistory')">Exposure History</p>
+              <button @click="exportCSV()" class="inline-flex items-center gap-1.5 border border-line bg-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-paper shadow-sm">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> <span x-text="t('exportCsv')">Export CSV</span>
+              </button>
+            </div>
+            <p class="text-sm text-ink/50 mb-5">
+              <span x-text="currentUser ? currentUser.name : 'Worker'"></span> · 
+              <span x-text="currentUser ? currentUser.email : 'you@example.com'"></span>
+            </p>
+
+            <div class="flex gap-2 mb-5">
+              <template x-for="rng in ['Weekly','Monthly','Custom']">
+                <button @click="rangeFilter=rng" class="text-xs font-semibold px-3.5 py-1.5 rounded-full border transition"
+                  :class="rangeFilter===rng ? 'bg-ink text-white border-ink' : 'border-line text-ink/60 bg-white'" x-text="rng === 'Weekly' ? t('weekly') : (rng === 'Monthly' ? t('monthly') : t('custom'))"></button>
+              </template>
+            </div>
+
+            <div class="rounded-2xl border border-line bg-white shadow-card p-5 mb-6">
+              <div class="h-48 relative">
+                <canvas id="historyChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Zero state history list -->
+            <div x-show="history.length === 0" class="bg-white border border-line rounded-xl p-8 text-center shadow-card">
+              <p class="text-sm font-bold text-ink" x-text="t('zeroExposureRecords')">Zero Exposure Records</p>
+              <p class="text-xs text-ink/50 mt-1" x-text="t('noExposureHistoryLogged')">No exposure history logged yet for this account.</p>
+            </div>
+
+            <div x-show="history.length > 0" class="space-y-2">
+              <template x-for="r in history" :key="r.id">
+                <div class="flex items-center justify-between bg-white border border-line rounded-xl px-4 py-3.5 shadow-card">
+                  <div>
+                    <p class="text-sm font-semibold text-ink" x-text="r.date + ' ' + (r.time || '')"></p>
+                    <p class="text-xs text-ink/45" x-text="r.shift + ' · Badge ' + r.badgeId"></p>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-display font-bold text-sm num-tabular" x-text="r.dose + ' ppm·h'"></p>
+                    <span class="text-[10px] font-semibold text-go" x-text="r.status || 'Valid'"></span>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== SAFETY OFFICER DASHBOARD ===== -->
+        <template x-if="view==='home' && role==='officer'">
+          <div class="max-w-5xl mx-auto px-5 pt-8">
+            <div class="flex items-center justify-between mb-1">
+              <p class="font-display font-bold text-xl" x-text="t('ehsDashboard')">EHS Executive Dashboard</p>
+              <span class="text-xs font-semibold bg-yellow-DEFAULT/30 text-ink px-3 py-1 rounded-full border border-yellow-DEFAULT/50" x-text="t('safetyOfficerMode')">
+                Safety Officer Mode
+              </span>
+            </div>
+            <p class="text-sm text-ink/50 mb-6" x-text="t('terminalOverview')">Panvel Gas Terminal · Real-time Dosimetry Database Overview</p>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <template x-for="s in officerStats" :key="s.label">
+                <div class="bg-white border border-line rounded-xl px-4 py-4 shadow-card">
+                  <p class="text-xs text-ink/45 mb-1.5" x-text="s.label"></p>
+                  <p class="font-display font-bold text-2xl" x-text="s.value"></p>
+                </div>
+              </template>
+            </div>
+
+            <div class="grid md:grid-cols-5 gap-5 mb-6">
+              <div class="md:col-span-3 bg-white border border-line rounded-2xl shadow-card p-5">
+                <p class="text-sm font-semibold mb-4" x-text="t('siteExposureTrend')">Site Exposure Trend (Average Shift ppm·h)</p>
+                <div class="h-52 relative">
+                  <canvas id="officerChart"></canvas>
+                </div>
+              </div>
+              <div class="md:col-span-2 bg-white border border-line rounded-2xl shadow-card p-5">
+                <p class="text-sm font-semibold mb-4" x-text="t('registeredWorkersReviews')">Registered Workers & Reviews</p>
+                <div class="space-y-3">
+                  <template x-for="w in reviewList" :key="w.name">
+                    <div class="flex items-start gap-2.5 p-2.5 rounded-lg border border-line/60 bg-paper">
+                      <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                        :class="w.sev==='Critical' ? 'bg-bad-bg text-bad' : 'bg-warn-bg text-warn'">
+                        <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+                      </div>
+                      <div>
+                        <p class="text-xs font-bold" x-text="w.name"></p>
+                        <p class="text-[11px] text-ink/60 mt-0.5" x-text="w.reason"></p>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== BADGES INVENTORY ===== -->
+        <template x-if="view==='badges'">
+          <div class="max-w-4xl mx-auto px-5 pt-8">
+            <div class="flex items-center justify-between mb-5">
+              <div>
+                <p class="font-display font-bold text-xl" x-text="t('badgeRegister')">Badge Register & Calibration</p>
+                <p class="text-xs text-ink/50" x-text="t('activeDosimeterInventory')">Active dosimeter batch inventory</p>
+              </div>
+            </div>
+
+            <div class="bg-white border border-line rounded-2xl shadow-card overflow-hidden">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-xs text-ink/45 border-b border-line bg-paper">
+                    <th class="px-4 py-3 font-medium" x-text="t('badgeIdLabel')">Badge ID</th>
+                    <th class="px-4 py-3 font-medium" x-text="t('batchIdLabel')">Batch ID</th>
+                    <th class="px-4 py-3 font-medium" x-text="t('workerAccount')">Assigned Worker</th>
+                    <th class="px-4 py-3 font-medium" x-text="t('status')">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="b in badges" :key="b.id">
+                    <tr class="border-b border-line last:border-0 hover:bg-paper/50 transition">
+                      <td class="px-4 py-3 font-semibold" x-text="b.id"></td>
+                      <td class="px-4 py-3 text-ink/60 font-mono text-xs" x-text="b.batchId"></td>
+                      <td class="px-4 py-3 text-ink/80 font-medium" x-text="b.workerName || '—'"></td>
+                      <td class="px-4 py-3">
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-md"
+                          :class="{
+                            'bg-go-bg text-go': b.status==='In Use' || b.status==='Available',
+                            'bg-warn-bg text-warn': b.status==='Scanned',
+                            'bg-bad-bg text-bad': b.status==='Expired'
+                          }" x-text="b.status"></span>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== BACKEND DATABASE EXPLORER ===== -->
+        <template x-if="view==='database'">
+          <div class="max-w-5xl mx-auto px-5 pt-8">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <p class="font-display font-bold text-xl">Backend Database Explorer</p>
+                <p class="text-xs text-ink/50 mt-0.5">Live JSON Storage Engine & Express REST API Database</p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full border border-emerald-300 shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                Express API Online (Port 3000)
+              </span>
+            </div>
+
+            <!-- Storage File Meta Banner -->
+            <div class="bg-slate-900 text-white rounded-2xl p-4.5 mb-5 shadow-md border border-slate-800">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-[10px] text-amber-400 font-mono font-bold tracking-wider">DATABASE PERSISTENCE FILE</p>
+                  <p class="text-xs font-mono text-slate-200 mt-0.5">server/data/db.json</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-300">
+                  <div class="bg-slate-800 px-2.5 py-1 rounded border border-slate-700"><span class="text-slate-400">Driver:</span> server/db.js</div>
+                  <div class="bg-slate-800 px-2.5 py-1 rounded border border-slate-700"><span class="text-slate-400">Auth:</span> bCrypt + JWT</div>
+                  <div class="bg-slate-800 px-2.5 py-1 rounded border border-slate-700"><span class="text-slate-400">Rest API:</span> /api/scans</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Collection Tabs Explorer -->
+            <div x-data="{ dbTab: 'users' }" class="space-y-4">
+              <div class="flex flex-wrap gap-2 border-b border-line pb-3">
+                <button @click="dbTab='users'" class="text-xs font-bold px-3.5 py-2 rounded-xl transition"
+                  :class="dbTab==='users' ? 'bg-ink text-white shadow-sm' : 'bg-white text-ink/70 border border-line hover:bg-paper'">
+                  Users Collection (<span x-text="workers.length + 3"></span>)
+                </button>
+                <button @click="dbTab='scans'" class="text-xs font-bold px-3.5 py-2 rounded-xl transition"
+                  :class="dbTab==='scans' ? 'bg-ink text-white shadow-sm' : 'bg-white text-ink/70 border border-line hover:bg-paper'">
+                  Scans Log (<span x-text="history.length"></span>)
+                </button>
+                <button @click="dbTab='badges'" class="text-xs font-bold px-3.5 py-2 rounded-xl transition"
+                  :class="dbTab==='badges' ? 'bg-ink text-white shadow-sm' : 'bg-white text-ink/70 border border-line hover:bg-paper'">
+                  Badges Inventory (<span x-text="badges.length"></span>)
+                </button>
+                <button @click="dbTab='batches'" class="text-xs font-bold px-3.5 py-2 rounded-xl transition"
+                  :class="dbTab==='batches' ? 'bg-ink text-white shadow-sm' : 'bg-white text-ink/70 border border-line hover:bg-paper'">
+                  Batches & Curves (<span x-text="batches.length"></span>)
+                </button>
+                <button @click="dbTab='alerts'" class="text-xs font-bold px-3.5 py-2 rounded-xl transition"
+                  :class="dbTab==='alerts' ? 'bg-ink text-white shadow-sm' : 'bg-white text-ink/70 border border-line hover:bg-paper'">
+                  System Alerts (<span x-text="alerts.length"></span>)
+                </button>
+              </div>
+
+              <!-- Users Table -->
+              <div x-show="dbTab==='users'" class="bg-white border border-line rounded-2xl shadow-card overflow-hidden">
+                <table class="w-full text-xs">
+                  <thead class="bg-paper border-b border-line text-ink/60 font-semibold">
+                    <tr>
+                      <th class="px-4 py-3 text-left">User ID</th>
+                      <th class="px-4 py-3 text-left">Name</th>
+                      <th class="px-4 py-3 text-left">Email</th>
+                      <th class="px-4 py-3 text-left">Role</th>
+                      <th class="px-4 py-3 text-left">Site & Unit</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-line">
+                    <template x-for="u in [
+                      { id: 'USR-027', name: 'Ramesh Kadam', email: 'ramesh@panvel-gas.com', role: 'worker', site: 'Panvel Gas Terminal · Unit 4' },
+                      { id: 'USR-014', name: 'Suresh Patil', email: 'suresh@panvel-gas.com', role: 'worker', site: 'Panvel Gas Terminal · Sulfur' },
+                      { id: 'USR-999', name: 'Dr. V. Sharma', email: 'officer@panvel-gas.com', role: 'officer', site: 'Panvel Gas Terminal · EHS Executive' },
+                      ...workers.map(w => ({ id: w.id || 'USR-LIVE', name: w.name, email: w.email, role: w.role || 'worker', site: w.site || 'Panvel Gas Terminal' }))
+                    ]" :key="u.id + u.email">
+                      <tr class="hover:bg-paper/40 transition">
+                        <td class="px-4 py-2.5 font-mono font-bold text-ink" x-text="u.id"></td>
+                        <td class="px-4 py-2.5 font-semibold text-ink" x-text="u.name"></td>
+                        <td class="px-4 py-2.5 font-mono text-ink/70" x-text="u.email"></td>
+                        <td class="px-4 py-2.5">
+                          <span class="px-2 py-0.5 rounded font-bold uppercase text-[10px]"
+                            :class="u.role==='officer' ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-amber-100 text-amber-900 border border-amber-200'" x-text="u.role"></span>
+                        </td>
+                        <td class="px-4 py-2.5 text-ink/60" x-text="u.site"></td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Scans Log Table -->
+              <div x-show="dbTab==='scans'" class="bg-white border border-line rounded-2xl shadow-card overflow-hidden">
+                <table class="w-full text-xs">
+                  <thead class="bg-paper border-b border-line text-ink/60 font-semibold">
+                    <tr>
+                      <th class="px-4 py-3 text-left">Scan ID</th>
+                      <th class="px-4 py-3 text-left">Worker</th>
+                      <th class="px-4 py-3 text-left">Badge / Batch</th>
+                      <th class="px-4 py-3 text-left">Dose (ppm·h)</th>
+                      <th class="px-4 py-3 text-left">Sampled RGB</th>
+                      <th class="px-4 py-3 text-left">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-line">
+                    <template x-for="s in history" :key="s.id">
+                      <tr class="hover:bg-paper/40 transition">
+                        <td class="px-4 py-2.5 font-mono font-bold text-ink" x-text="s.id"></td>
+                        <td class="px-4 py-2.5 font-semibold text-ink" x-text="s.workerName || 'Worker'"></td>
+                        <td class="px-4 py-2.5 font-mono text-ink/70" x-text="s.badgeId + ' (' + (s.batchId || 'C17') + ')'"></td>
+                        <td class="px-4 py-2.5 font-bold font-mono text-ink" x-text="s.dose + ' ppm·h'"></td>
+                        <td class="px-4 py-2.5">
+                          <div class="flex items-center gap-1.5">
+                            <span class="w-3.5 h-3.5 rounded border border-black/20 shrink-0" :style="'background-color: rgb(' + (s.rgb ? s.rgb.r+','+s.rgb.g+','+s.rgb.b : '138,90,42') + ')'"></span>
+                            <span class="font-mono text-[11px] text-ink/70" x-text="s.rgb ? 'RGB(' + s.rgb.r + ',' + s.rgb.g + ',' + s.rgb.b + ')' : 'RGB(138,90,42)'"></span>
+                          </div>
+                        </td>
+                        <td class="px-4 py-2.5 font-semibold text-go" x-text="s.status || 'Valid'"></td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Badges Inventory Table -->
+              <div x-show="dbTab==='badges'" class="bg-white border border-line rounded-2xl shadow-card overflow-hidden">
+                <table class="w-full text-xs">
+                  <thead class="bg-paper border-b border-line text-ink/60 font-semibold">
+                    <tr>
+                      <th class="px-4 py-3 text-left">Badge ID</th>
+                      <th class="px-4 py-3 text-left">Batch ID</th>
+                      <th class="px-4 py-3 text-left">Assigned Worker</th>
+                      <th class="px-4 py-3 text-left">Issued Date</th>
+                      <th class="px-4 py-3 text-left">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-line">
+                    <template x-for="b in badges" :key="b.id">
+                      <tr class="hover:bg-paper/40 transition">
+                        <td class="px-4 py-2.5 font-mono font-bold text-ink" x-text="b.id"></td>
+                        <td class="px-4 py-2.5 font-mono text-ink/70" x-text="b.batchId"></td>
+                        <td class="px-4 py-2.5 font-medium text-ink" x-text="b.workerName || 'Unassigned'"></td>
+                        <td class="px-4 py-2.5 text-ink/60" x-text="b.issuedDate || '2026-09-01'"></td>
+                        <td class="px-4 py-2.5 font-semibold" x-text="b.status"></td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Batches & Curves Table -->
+              <div x-show="dbTab==='batches'" class="bg-white border border-line rounded-2xl shadow-card overflow-hidden">
+                <table class="w-full text-xs">
+                  <thead class="bg-paper border-b border-line text-ink/60 font-semibold">
+                    <tr>
+                      <th class="px-4 py-3 text-left">Batch ID</th>
+                      <th class="px-4 py-3 text-left">Calibration Curve</th>
+                      <th class="px-4 py-3 text-left">Mfg Date</th>
+                      <th class="px-4 py-3 text-left">Expiry Date</th>
+                      <th class="px-4 py-3 text-left">Uncertainty</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-line">
+                    <template x-for="bt in batches" :key="bt.batchId">
+                      <tr class="hover:bg-paper/40 transition">
+                        <td class="px-4 py-2.5 font-mono font-bold text-ink" x-text="bt.batchId"></td>
+                        <td class="px-4 py-2.5 font-semibold text-purple-700" x-text="'Curve ' + (bt.curve || 'C17')"></td>
+                        <td class="px-4 py-2.5 text-ink/60" x-text="bt.mfgDate"></td>
+                        <td class="px-4 py-2.5 text-ink/60" x-text="bt.expiryDate"></td>
+                        <td class="px-4 py-2.5 text-go font-bold" x-text="'±' + (bt.uncertainty || '1.4') + ' ppm·h'"></td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- System Alerts Table -->
+              <div x-show="dbTab==='alerts'" class="bg-white border border-line rounded-2xl shadow-card overflow-hidden">
+                <table class="w-full text-xs">
+                  <thead class="bg-paper border-b border-line text-ink/60 font-semibold">
+                    <tr>
+                      <th class="px-4 py-3 text-left">Alert ID</th>
+                      <th class="px-4 py-3 text-left">Title</th>
+                      <th class="px-4 py-3 text-left">Detail</th>
+                      <th class="px-4 py-3 text-left">Severity</th>
+                      <th class="px-4 py-3 text-left">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-line">
+                    <template x-for="a in alerts" :key="a.id">
+                      <tr class="hover:bg-paper/40 transition">
+                        <td class="px-4 py-2.5 font-mono font-bold text-ink" x-text="a.id"></td>
+                        <td class="px-4 py-2.5 font-semibold text-ink" x-text="a.title"></td>
+                        <td class="px-4 py-2.5 text-ink/70" x-text="a.detail"></td>
+                        <td class="px-4 py-2.5 font-bold" :class="a.sev==='Critical'?'text-bad':'text-warn'" x-text="a.sev"></td>
+                        <td class="px-4 py-2.5 text-ink/50" x-text="a.time"></td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== ALERTS ===== -->
+        <template x-if="view==='alerts'">
+          <div class="max-w-2xl mx-auto px-5 pt-8">
+            <div class="flex items-center justify-between mb-5">
+              <p class="font-display font-bold text-xl" x-text="t('safetyAlerts')">Safety & Validity Alerts</p>
+            </div>
+
+            <div class="space-y-2.5">
+              <template x-for="a in alerts" :key="a.id">
+                <div class="bg-white border border-line rounded-xl px-4 py-3.5 flex items-start gap-3 shadow-card">
+                  <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                    :class="{'bg-bad-bg text-bad': a.sev==='Critical','bg-warn-bg text-warn': a.sev==='Warning','bg-go-bg text-go': a.sev==='Attention','bg-paper text-ink/50': a.sev==='Info'}">
+                    <i data-lucide="bell" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-sm font-semibold text-ink" x-text="a.title"></p>
+                    <p class="text-xs text-ink/50 mt-0.5" x-text="a.detail"></p>
+                  </div>
+                  <span class="text-[10px] font-semibold text-ink/35 mt-1" x-text="a.time"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+
+      </div>
+
+      <!-- Mobile Bottom Nav -->
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-line px-3 pt-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] flex justify-around items-center z-30 shadow-lg">
+        
+        <!-- HOME -->
+        <button @click="view='home'" class="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition"
+          :class="view==='home' ? 'text-ink font-bold scale-105' : 'text-ink/40 hover:text-ink'">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 00-1 1m-6 0h6"/>
+          </svg>
+          <span class="text-[10px]" x-text="t('navHome')">Home</span>
+        </button>
+
+        <!-- SCAN -->
+        <button @click="startScan()" class="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl bg-yellow-DEFAULT text-ink shadow-md transition -mt-3 border-2 border-white scale-105">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+          </svg>
+          <span class="text-[10px] font-extrabold" x-text="t('navScan')">Scan</span>
+        </button>
+
+        <!-- HISTORY (WORKER) / BADGES (OFFICER) -->
+        <button x-show="role==='worker'" @click="view='history'" class="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition"
+          :class="view==='history' ? 'text-ink font-bold scale-105' : 'text-ink/40 hover:text-ink'">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          <span class="text-[10px]" x-text="t('navHistory')">History</span>
+        </button>
+
+        <button x-show="role==='officer'" @click="view='badges'" class="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition"
+          :class="view==='badges' ? 'text-ink font-bold scale-105' : 'text-ink/40 hover:text-ink'">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          <span class="text-[10px]" x-text="t('navBadges')">Badges</span>
+        </button>
+
+        <!-- ALERTS -->
+        <button @click="view='alerts'" class="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition relative"
+          :class="view==='alerts' ? 'text-ink font-bold scale-105' : 'text-ink/40 hover:text-ink'">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          <span class="text-[10px]" x-text="t('navAlerts')">Alerts</span>
+          <span x-show="alerts.filter(a=>!a.acknowledged).length > 0" class="absolute top-1 right-3.5 w-2 h-2 rounded-full bg-bad"></span>
+        </button>
+
+      </nav>
+    </div>
+  </template>
+
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    background-color: #F7F8FA;
+    color: #1C1E21;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+.font-display {
+  font-family: 'Manrope', sans-serif;
+}
+
+.track-underline {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #F0C419 0%, #F0C419 60%, transparent 60%);
+  width: 56px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E3E4E8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C79F62;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+.num-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.scan-frame {
+  border: 2px solid rgba(240,196,25,0.9);
+  border-radius: 18px;
+  box-shadow: 0 0 0 4000px rgba(10,10,12,0.65);
+}
+
+.corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: #F0C419;
+}
+
+.grain-band {
+  background-image: repeating-linear-gradient(90deg, rgba(28,30,33,0.05) 0 1px, transparent 1px 24px);
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
