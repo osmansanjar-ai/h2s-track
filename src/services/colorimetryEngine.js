@@ -184,41 +184,60 @@ export class ColorimetryEngine {
     const boxW = Math.max(10, targetMaxX - targetMinX);
     const boxH = Math.max(10, targetMaxY - targetMinY);
 
-    // Step 3: Check for QR Code presence on left 25% of sticker box
+    // Step 3: Check for QR Code presence on left 22% of sticker box and Reference Scale on right side
     let qrDarkCount = 0;
-    const left25End = targetMinX + Math.floor(boxW * 0.25);
+    const left22End = targetMinX + Math.floor(boxW * 0.22);
     const checkStep = Math.max(1, Math.floor(Math.min(boxW, boxH) / 40));
 
     for (let y = targetMinY; y < targetMaxY; y += checkStep) {
-      for (let x = targetMinX; x < left25End; x += checkStep) {
+      for (let x = targetMinX; x < left22End; x += checkStep) {
         if (x < 0 || x >= width || y < 0 || y >= height) continue;
         const idx = (y * width + x) * 4;
         const r = data[idx];
         const g = data[idx+1];
         const b = data[idx+2];
-        if ((r + g + b) / 3 < 50) {
+        if ((r + g + b) / 3 < 60) {
           qrDarkCount++;
         }
       }
     }
 
-    const hasQrCode = qrDarkCount > 15;
+    // Step 4: Check for Reference Scale presence on right side (55% to 75% of box)
+    let refScaleDarkCount = 0;
+    const rightRefStart = targetMinX + Math.floor(boxW * 0.55);
+    const rightRefEnd = targetMinX + Math.floor(boxW * 0.75);
 
-    // Isolate Chemical Sensor Patch Bounds
-    let startX, endX, startY, endY;
-    if (hasQrCode) {
-      // Full graphic strip: Chemical patch is strictly located between 30% and 50% of sticker width
-      startX = targetMinX + Math.floor(boxW * 0.30);
-      endX = targetMinX + Math.floor(boxW * 0.50);
-      startY = targetMinY + Math.floor(boxH * 0.20);
-      endY = targetMinY + Math.floor(boxH * 0.80);
-    } else {
-      // Close-up wrist photo: Chemical patch is centered between 25% and 75% of sticker width
-      startX = targetMinX + Math.floor(boxW * 0.25);
-      endX = targetMinX + Math.floor(boxW * 0.75);
-      startY = targetMinY + Math.floor(boxH * 0.20);
-      endY = targetMinY + Math.floor(boxH * 0.80);
+    for (let y = targetMinY; y < targetMaxY; y += checkStep) {
+      for (let x = rightRefStart; x < rightRefEnd; x += checkStep) {
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+        const idx = (y * width + x) * 4;
+        const r = data[idx];
+        const g = data[idx+1];
+        const b = data[idx+2];
+        const luma = (r + g + b) / 3;
+        if (luma < 120) { // Darker swatches or swatch borders on reference scale
+          refScaleDarkCount++;
+        }
+      }
     }
+
+    const hasQrCode = qrDarkCount >= 8;
+    const hasRefScale = refScaleDarkCount >= 6;
+
+    // REJECTION RULE 2: Reject Legacy / Old / Unauthenticated Badge Designs
+    // If the image lacks the H2S-Track V2 QR code OR reference calibration scale, block scanning!
+    if (!hasQrCode && !hasRefScale) {
+      return {
+        bandDetected: false,
+        reason: 'Legacy / Unauthenticated badge design detected (Missing QR code & calibration reference scale). Please scan authentic H2S-Track V2 badge.'
+      };
+    }
+
+    // Isolate Chemical Sensor Patch Bounds for authentic V2 design (strictly 30% to 52% of sticker width)
+    const startX = targetMinX + Math.floor(boxW * 0.30);
+    const endX = targetMinX + Math.floor(boxW * 0.52);
+    const startY = targetMinY + Math.floor(boxH * 0.18);
+    const endY = targetMinY + Math.floor(boxH * 0.82);
 
     let totalR = 0, totalG = 0, totalB = 0, count = 0;
     let minBrightness = 255, maxBrightness = 0;

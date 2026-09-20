@@ -182,6 +182,102 @@
   ],
   "scans": [
     {
+      "id": "SCN-3557",
+      "date": "20 Sep 2026",
+      "isoDate": "2026-09-20",
+      "time": "23:14",
+      "shift": "08:00–16:00",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-W-027",
+      "batchId": "H2S-2026-001",
+      "dose": 24.1,
+      "uncertainty": 1.4,
+      "status": "Action Level Reached",
+      "quality": "Good",
+      "rgb": {
+        "r": 213,
+        "g": 221,
+        "b": 200
+      },
+      "deltaE": 10.83,
+      "calibration": "XGBoost Regressor (MDPI Molecules 2023 Calibrated)",
+      "userId": "USR-027",
+      "createdAt": "2026-09-20T17:44:22.707Z"
+    },
+    {
+      "id": "SCN-6375",
+      "date": "20 Sep 2026",
+      "isoDate": "2026-09-20",
+      "time": "23:13",
+      "shift": "08:00–16:00",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-W-027",
+      "batchId": "H2S-2026-001",
+      "dose": 84.7,
+      "uncertainty": 1.3,
+      "status": "Action Level Reached",
+      "quality": "Good",
+      "rgb": {
+        "r": 168,
+        "g": 168,
+        "b": 141
+      },
+      "deltaE": 28.27,
+      "calibration": "XGBoost Regressor (MDPI Molecules 2023 Calibrated)",
+      "userId": "USR-027",
+      "createdAt": "2026-09-20T17:44:08.123Z"
+    },
+    {
+      "id": "SCN-5451",
+      "date": "20 Sep 2026",
+      "isoDate": "2026-09-20",
+      "time": "23:13",
+      "shift": "08:00–16:00",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-W-027",
+      "batchId": "H2S-2026-001",
+      "dose": 157.6,
+      "uncertainty": 1.3,
+      "status": "Critical Exposure",
+      "quality": "Good",
+      "rgb": {
+        "r": 110,
+        "g": 97,
+        "b": 87
+      },
+      "deltaE": 53.05,
+      "calibration": "XGBoost Regressor (MDPI Molecules 2023 Calibrated)",
+      "userId": "USR-027",
+      "createdAt": "2026-09-20T17:43:22.973Z"
+    },
+    {
+      "id": "SCN-6092",
+      "date": "20 Sep 2026",
+      "isoDate": "2026-09-20",
+      "time": "23:13",
+      "shift": "08:00–16:00",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-W-027",
+      "batchId": "H2S-2026-001",
+      "dose": 157.6,
+      "uncertainty": 1.3,
+      "status": "Critical Exposure",
+      "quality": "Good",
+      "rgb": {
+        "r": 110,
+        "g": 97,
+        "b": 87
+      },
+      "deltaE": 53.05,
+      "calibration": "XGBoost Regressor (MDPI Molecules 2023 Calibrated)",
+      "userId": "USR-027",
+      "createdAt": "2026-09-20T17:43:09.072Z"
+    },
+    {
       "id": "SCN-6504",
       "date": "20 Sep 2026",
       "isoDate": "2026-09-20",
@@ -599,6 +695,42 @@
     }
   ],
   "alerts": [
+    {
+      "id": "ALT-523",
+      "title": "Elevated dose logged (24.1 ppm·h)",
+      "detail": "Ramesh Kadam · Badge H2S-W-027 logged elevated exposure",
+      "sev": "Critical",
+      "time": "Just now",
+      "workerId": "USR-027",
+      "acknowledged": false
+    },
+    {
+      "id": "ALT-514",
+      "title": "Elevated dose logged (84.7 ppm·h)",
+      "detail": "Ramesh Kadam · Badge H2S-W-027 logged elevated exposure",
+      "sev": "Critical",
+      "time": "Just now",
+      "workerId": "USR-027",
+      "acknowledged": false
+    },
+    {
+      "id": "ALT-735",
+      "title": "Elevated dose logged (157.6 ppm·h)",
+      "detail": "Ramesh Kadam · Badge H2S-W-027 logged elevated exposure",
+      "sev": "Critical",
+      "time": "Just now",
+      "workerId": "USR-027",
+      "acknowledged": false
+    },
+    {
+      "id": "ALT-786",
+      "title": "Elevated dose logged (157.6 ppm·h)",
+      "detail": "Ramesh Kadam · Badge H2S-W-027 logged elevated exposure",
+      "sev": "Critical",
+      "time": "Just now",
+      "workerId": "USR-027",
+      "acknowledged": false
+    },
     {
       "id": "ALT-175",
       "title": "Elevated dose logged (84.7 ppm·h)",
