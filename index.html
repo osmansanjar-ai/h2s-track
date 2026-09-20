@@ -231,23 +231,81 @@
               </button>
             </div>
           </div>
-          <!-- Wristband visual -->
-          <div class="relative flex justify-center">
-            <svg viewBox="0 0 340 240" class="w-full max-w-sm drop-shadow-md">
-              <path d="M40 120 C 40 50, 300 50, 300 120 C 300 190, 40 190, 40 120 Z" fill="#F0C419"/>
-              <rect x="100" y="72" width="140" height="96" rx="14" fill="white" stroke="#1C1E21" stroke-width="1.5"/>
-              <rect x="112" y="84" width="116" height="26" rx="4" fill="#E1F0E5" stroke="#5E6B56"/>
-              <rect x="114" y="86" width="22" height="22" fill="#E1F0E5"/>
-              <rect x="136" y="86" width="22" height="22" fill="#B5C4AA"/>
-              <rect x="158" y="86" width="22" height="22" fill="#8C846D"/>
-              <rect x="180" y="86" width="22" height="22" fill="#595244"/>
-              <rect x="202" y="86" width="22" height="22" fill="#262420"/>
-              <circle cx="150" cy="132" r="13" fill="#2F9E52" stroke="#1C1E21" stroke-width="1.2"/>
-              <rect x="176" y="120" width="38" height="24" rx="3" fill="#1C1E21"/>
-              <rect x="181" y="125" width="6" height="6" fill="white"/><rect x="189" y="125" width="6" height="6" fill="white"/><rect x="197" y="125" width="6" height="6" fill="white"/>
-              <rect x="181" y="133" width="6" height="6" fill="white"/><rect x="197" y="133" width="6" height="6" fill="white"/>
-              <text x="176" y="150" font-family="Inter" font-size="5.5" font-weight="700" fill="#1C1E21">EXP 2028</text>
-              <text x="114" y="158" font-family="Inter" font-size="6.5" fill="#1C1E21" opacity="0.7">H2S-2026-001 · EXP: 2028-12-31</text>
+          <!-- Wristband visual with Illuminating Chemical Glow Animation -->
+          <div class="relative flex items-center justify-center p-4">
+            <!-- Glowing ambient halo background -->
+            <div class="absolute w-72 h-72 rounded-full bg-gradient-to-tr from-amber-400/30 via-yellow-300/20 to-amber-500/30 blur-2xl animate-pulse pointer-events-none"></div>
+
+            <svg viewBox="0 0 380 260" class="w-full max-w-md drop-shadow-xl relative z-10">
+              <defs>
+                <!-- Glowing laser sweep gradient -->
+                <linearGradient id="scanBeamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.1"/>
+                  <stop offset="50%" stop-color="#F59E0B" stop-opacity="0.9"/>
+                  <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.1"/>
+                </linearGradient>
+
+                <!-- Chemical Reaction Glow -->
+                <radialGradient id="chemGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#10B981" stop-opacity="0.8"/>
+                  <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+
+              <!-- Yellow Silicone Wristband Substrate -->
+              <path d="M30 130 C 30 55, 350 55, 350 130 C 350 205, 30 205, 30 130 Z" fill="#F0C419" stroke="#D97706" stroke-width="2.5"/>
+              
+              <!-- Inner White Label Plate -->
+              <rect x="95" y="78" width="190" height="104" rx="16" fill="#FFFFFF" stroke="#1C1E21" stroke-width="2"/>
+
+              <!-- Chemical Sensing Window with Illuminated Glow Ring -->
+              <rect x="110" y="92" width="160" height="32" rx="6" fill="#E1F0E5" stroke="#5E6B56" stroke-width="1.2"/>
+              
+              <!-- 5-Step Calibrated Reference Swatches -->
+              <rect x="112" y="94" width="30" height="28" rx="2" fill="#E1F0E5"/>
+              <rect x="144" y="94" width="30" height="28" rx="2" fill="#B5C4AA"/>
+              <rect x="176" y="94" width="30" height="28" rx="2" fill="#8C846D"/>
+              <rect x="208" y="94" width="30" height="28" rx="2" fill="#595244"/>
+              <rect x="240" y="94" width="28" height="28" rx="2" fill="#262420"/>
+
+              <!-- Pulsing Chemical Light Emission Ring over reactive patch -->
+              <circle cx="159" cy="108" r="16" fill="url(#chemGlow)">
+                <animate attributeName="r" values="12;20;12" dur="2.5s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.4;0.95;0.4" dur="2.5s" repeatCount="indefinite"/>
+              </circle>
+
+              <!-- QR Code Block -->
+              <rect x="112" y="132" width="42" height="42" rx="4" fill="#1C1E21"/>
+              <rect x="117" y="137" width="12" height="12" fill="#FFFFFF"/>
+              <rect x="137" y="137" width="12" height="12" fill="#FFFFFF"/>
+              <rect x="117" y="157" width="12" height="12" fill="#FFFFFF"/>
+              <rect x="120" y="140" width="6" height="6" fill="#1C1E21"/>
+              <rect x="140" y="140" width="6" height="6" fill="#1C1E21"/>
+              <rect x="120" y="160" width="6" height="6" fill="#1C1E21"/>
+
+              <!-- Status Badge & Batch Label -->
+              <rect x="162" y="132" width="108" height="20" rx="4" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1"/>
+              <text x="168" y="145" font-family="Inter, sans-serif" font-size="8.5" font-weight="800" fill="#B45309">ACTIVE DOSIMETER</text>
+              <text x="162" y="164" font-family="Inter, sans-serif" font-size="7.5" font-weight="700" fill="#475569">EXP: 2028-12-31 · BATCH C17</text>
+
+              <!-- Floating H2S Gas Molecules with Upward Motion Animation -->
+              <g opacity="0.85">
+                <circle cx="70" cy="90" r="5" fill="#F59E0B">
+                  <animate attributeName="cy" values="95;80;95" dur="3s" repeatCount="indefinite"/>
+                </circle>
+                <text x="66" y="93" font-family="Inter" font-size="5" font-weight="900" fill="#FFFFFF">H₂S</text>
+
+                <circle cx="310" cy="160" r="6" fill="#D97706">
+                  <animate attributeName="cy" values="165;150;165" dur="3.5s" repeatCount="indefinite"/>
+                </circle>
+                <text x="305" y="163" font-family="Inter" font-size="5.5" font-weight="900" fill="#FFFFFF">H₂S</text>
+              </g>
+
+              <!-- Sweeping Illuminating Light Ray Line -->
+              <line x1="95" y1="108" x2="285" y2="108" stroke="url(#scanBeamGrad)" stroke-width="3" stroke-linecap="round">
+                <animate attributeName="x1" values="95;200;95" dur="3s" repeatCount="indefinite"/>
+                <animate attributeName="x2" values="180;285;180" dur="3s" repeatCount="indefinite"/>
+              </line>
             </svg>
           </div>
         </section>
@@ -302,40 +360,153 @@
           </div>
         </section>
 
-        <!-- How it works (5 Steps) -->
+        <!-- How it works (5 Steps with Rich Custom SVGs) -->
         <section id="how" class="bg-white border-y border-line py-16">
           <div class="max-w-6xl mx-auto px-6">
-            <h2 class="font-display font-bold text-2xl mb-10">How it works</h2>
+            <h2 class="font-display font-extrabold text-2xl mb-10 text-ink">How it works</h2>
             <div class="grid md:grid-cols-5 gap-6">
-              <template x-for="(s,i) in [
-                {t:'Wear', d:'Worker wears the badge for the full shift.', icon:'hand'},
-                {t:'Exposure', d:'The sensing strip reacts to ambient H₂S over time.', icon:'flask-conical'},
-                {t:'Scan', d:'Photograph the badge with a phone at shift end.', icon:'scan-line'},
-                {t:'Quantify', d:'Color response is converted to a calibrated dose.', icon:'sliders-horizontal'},
-                {t:'Record', d:'The estimate is logged to the worker\'s history.', icon:'database'},
-              ]">
-                <div class="bg-paper p-5 rounded-xl border border-line shadow-card">
-                  <div class="w-10 h-10 rounded-lg bg-white border border-line flex items-center justify-center mb-4 shadow-sm">
-                    <i :data-lucide="s.icon" class="w-5 h-5 text-amber-500"></i>
-                  </div>
-                  <p class="font-semibold text-sm mb-1" x-text="(i+1)+'. '+s.t"></p>
-                  <p class="text-xs text-ink/60 leading-relaxed" x-text="s.d"></p>
+
+              <!-- STEP 1: WEAR -->
+              <div class="bg-paper p-5 rounded-xl border border-line shadow-card hover:border-amber-400 transition">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-300 flex items-center justify-center mb-4 shadow-xs text-amber-600">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="7" y="8" width="10" height="8" rx="2" fill="#F0C419" stroke="#D97706"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+                  </svg>
                 </div>
-              </template>
+                <p class="font-bold text-sm mb-1 text-ink">1. Wear Badge</p>
+                <p class="text-xs text-ink/65 leading-relaxed">Worker wears the passive silicone H₂S badge on wrist or lapel for the full shift.</p>
+              </div>
+
+              <!-- STEP 2: EXPOSURE -->
+              <div class="bg-paper p-5 rounded-xl border border-line shadow-card hover:border-amber-400 transition">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-300 flex items-center justify-center mb-4 shadow-xs text-amber-600">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 2v5.586a1 1 0 01-.293.707l-4.414 4.414A2 2 0 004 14.121V19a2 2 0 002 2h12a2 2 0 002-2v-4.879a2 2 0 00-.586-1.414l-4.414-4.414A1 1 0 0114 7.586V2m-4 0h4"/>
+                    <circle cx="12" cy="15" r="1.5" fill="currentColor"/>
+                  </svg>
+                </div>
+                <p class="font-bold text-sm mb-1 text-ink">2. Gas Exposure</p>
+                <p class="text-xs text-ink/65 leading-relaxed">Sensing strip reacts to ambient H₂S gas, shifting color from mint green to CuS brown-black.</p>
+              </div>
+
+              <!-- STEP 3: SCAN -->
+              <div class="bg-paper p-5 rounded-xl border border-line shadow-card hover:border-amber-400 transition">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-300 flex items-center justify-center mb-4 shadow-xs text-amber-600">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M9 7h6m-6 4h6"/>
+                    <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                  </svg>
+                </div>
+                <p class="font-bold text-sm mb-1 text-ink">3. Scan Photo</p>
+                <p class="text-xs text-ink/65 leading-relaxed">Photograph the badge at shift end using any iOS or Android smartphone camera.</p>
+              </div>
+
+              <!-- STEP 4: QUANTIFY -->
+              <div class="bg-paper p-5 rounded-xl border border-line shadow-card hover:border-amber-400 transition">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-300 flex items-center justify-center mb-4 shadow-xs text-amber-600">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                </div>
+                <p class="font-bold text-sm mb-1 text-ink">4. Quantify Dose</p>
+                <p class="text-xs text-ink/65 leading-relaxed">XGBoost ML model converts color reflectance into precise cumulative dose (ppm·h).</p>
+              </div>
+
+              <!-- STEP 5: RECORD -->
+              <div class="bg-paper p-5 rounded-xl border border-line shadow-card hover:border-amber-400 transition">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-300 flex items-center justify-center mb-4 shadow-xs text-amber-600">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+                  </svg>
+                </div>
+                <p class="font-bold text-sm mb-1 text-ink">5. Record History</p>
+                <p class="text-xs text-ink/65 leading-relaxed">The measurement is securely saved to worker history and Safety Officer EHS dashboard.</p>
+              </div>
+
             </div>
           </div>
         </section>
 
-        <!-- Why H₂S-Track (6 Features) -->
+        <!-- Why H₂S-Track (6 Styled Feature Cards with Custom SVGs) -->
         <section id="why" class="max-w-6xl mx-auto px-6 py-16">
-          <h2 class="font-display font-bold text-2xl mb-10">Why H₂S-Track</h2>
-          <div class="grid sm:grid-cols-3 gap-4">
-            <template x-for="f in ['Battery-free','Passive','Disposable','Smartphone-readable','Batch-calibrated','Validity-aware']">
-              <div class="rounded-xl border border-line bg-white p-5 shadow-card flex items-center gap-3">
-                <i data-lucide="check-circle-2" class="w-4 h-4 text-go"></i>
-                <p class="font-semibold text-sm" x-text="f"></p>
+          <h2 class="font-display font-extrabold text-2xl mb-10 text-ink">Why H₂S-Track</h2>
+          <div class="grid sm:grid-cols-3 gap-5">
+
+            <div class="rounded-2xl border border-line bg-white p-5 shadow-card hover:border-amber-400 transition flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
               </div>
-            </template>
+              <div>
+                <p class="font-bold text-sm text-ink mb-0.5">Battery-free</p>
+                <p class="text-xs text-ink/60">Zero electrical batteries or charging required. Battery-free passive chemical operation.</p>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-line bg-white p-5 shadow-card hover:border-amber-400 transition flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l3 3m0 0l-3 3m3-3H7a5 5 0 00-5 5v1"/>
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-sm text-ink mb-0.5">Passive Diffusion</p>
+                <p class="text-xs text-ink/60">Continuous molecular absorption during full 8-hour or 12-hour industrial worker shifts.</p>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-line bg-white p-5 shadow-card hover:border-amber-400 transition flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-sm text-ink mb-0.5">Disposable Badges</p>
+                <p class="text-xs text-ink/60">Low-cost chemical reagent wristbands suitable for daily or shift replacement.</p>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-line bg-white p-5 shadow-card hover:border-amber-400 transition flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01"/>
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-sm text-ink mb-0.5">Smartphone-Readable</p>
+                <p class="text-xs text-ink/60">&lt; 1ms quantitative colorimetry analysis powered by compiled XGBoost ML decision tree.</p>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-line bg-white p-5 shadow-card hover:border-amber-400 transition flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-sm text-ink mb-0.5">Batch-Calibrated</p>
+                <p class="text-xs text-ink/60">Factory QR verification with specific batch calibration curves (C17, C18) & uncertainty coefficients.</p>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-line bg-white p-5 shadow-card hover:border-amber-400 transition flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-sm text-ink mb-0.5">Validity-Aware</p>
+                <p class="text-xs text-ink/60">Automatic expiration patch validation and anti-tamper substrate geometry verification lock.</p>
+              </div>
+            </div>
+
           </div>
         </section>
       </div>
