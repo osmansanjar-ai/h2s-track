@@ -97,35 +97,36 @@ export class ColorimetryEngine {
   }
 
   /**
-   * Detect 4-Corner ArUco Alignment Markers surrounding the central reactive patch window
-   * Returns count of detected corner markers (0 to 4) and boolean isV2Badge
+   * Detect 4-Corner ArUco Alignment Markers surrounding the central reactive patch window.
+   * Scans 4 corner search regions around the patch window for printed black-and-white ArUco target blocks.
+   * Returns count of detected corner markers (0 to 4) and boolean isV2Badge.
    */
   static detectArUcoCornerFiducials(data, width, height, targetMinX, targetMinY, boxW, boxH) {
-    // 4 Corner Locations relative to sticker box (Top-Left, Top-Right, Bottom-Left, Bottom-Right)
-    const corners = [
-      { x: targetMinX + Math.floor(boxW * 0.30), y: targetMinY + Math.floor(boxH * 0.16) }, // Top-Left
-      { x: targetMinX + Math.floor(boxW * 0.55), y: targetMinY + Math.floor(boxH * 0.16) }, // Top-Right
-      { x: targetMinX + Math.floor(boxW * 0.30), y: targetMinY + Math.floor(boxH * 0.84) }, // Bottom-Left
-      { x: targetMinX + Math.floor(boxW * 0.55), y: targetMinY + Math.floor(boxH * 0.84) }  // Bottom-Right
+    // Define 4 corner search bounding boxes surrounding the patch window relative to label plate
+    const regions = [
+      // Top-Left Corner Region
+      { minX: targetMinX + Math.floor(boxW * 0.18), maxX: targetMinX + Math.floor(boxW * 0.38), minY: targetMinY + Math.floor(boxH * 0.05), maxY: targetMinY + Math.floor(boxH * 0.30) },
+      // Top-Right Corner Region
+      { minX: targetMinX + Math.floor(boxW * 0.48), maxX: targetMinX + Math.floor(boxW * 0.68), minY: targetMinY + Math.floor(boxH * 0.05), maxY: targetMinY + Math.floor(boxH * 0.30) },
+      // Bottom-Left Corner Region
+      { minX: targetMinX + Math.floor(boxW * 0.18), maxX: targetMinX + Math.floor(boxW * 0.38), minY: targetMinY + Math.floor(boxH * 0.70), maxY: targetMinY + Math.floor(boxH * 0.95) },
+      // Bottom-Right Corner Region
+      { minX: targetMinX + Math.floor(boxW * 0.48), maxX: targetMinX + Math.floor(boxW * 0.68), minY: targetMinY + Math.floor(boxH * 0.70), maxY: targetMinY + Math.floor(boxH * 0.95) }
     ];
 
     let detectedCount = 0;
-    const searchRadius = Math.max(3, Math.floor(Math.min(boxW, boxH) / 25));
 
-    corners.forEach(corner => {
-      let hasBlackInk = false;
-      let hasWhiteSpace = false;
+    regions.forEach(region => {
+      let darkInkCount = 0;
+      let whitePaperCount = 0;
       let minLuma = 255;
       let maxLuma = 0;
 
-      for (let dy = -searchRadius; dy <= searchRadius; dy++) {
-        for (let dx = -searchRadius; dx <= searchRadius; dx++) {
-          const px = corner.x + dx;
-          const py = corner.y + dy;
+      const step = Math.max(1, Math.floor(Math.min(boxW, boxH) / 50));
 
-          if (px < 0 || px >= width || py < 0 || py >= height) continue;
-
-          const idx = (py * width + px) * 4;
+      for (let y = Math.max(0, region.minY); y <= Math.min(height - 1, region.maxY); y += step) {
+        for (let x = Math.max(0, region.minX); x <= Math.min(width - 1, region.maxX); x += step) {
+          const idx = (y * width + x) * 4;
           const r = data[idx];
           const g = data[idx+1];
           const b = data[idx+2];
@@ -134,20 +135,22 @@ export class ColorimetryEngine {
           if (luma < minLuma) minLuma = luma;
           if (luma > maxLuma) maxLuma = luma;
 
-          if (luma < 50) hasBlackInk = true;
-          if (luma > 180) hasWhiteSpace = true;
+          // Dark printed ArUco target ink (< 75 luma)
+          if (luma < 75) darkInkCount++;
+          // Light paper substrate (> 150 luma)
+          if (luma > 150) whitePaperCount++;
         }
       }
 
-      // An authentic ArUco corner fiducial target has high local contrast (black & white in 10px radius)
-      if (hasBlackInk && hasWhiteSpace && (maxLuma - minLuma) > 120) {
+      // An authentic ArUco corner target contains dark printed marker ink AND light paper substrate with high local contrast (> 80)
+      if (darkInkCount >= 2 && whitePaperCount >= 3 && (maxLuma - minLuma) > 80) {
         detectedCount++;
       }
     });
 
     return {
       count: detectedCount,
-      isV2Badge: detectedCount >= 2 // Requires at least 2 corner fiducial markers detected
+      isV2Badge: detectedCount >= 1 // NEW V2 badge has ArUco targets (>= 1 found); OLD badge has 0 found
     };
   }
 
