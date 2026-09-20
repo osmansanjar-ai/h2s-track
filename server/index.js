@@ -209,8 +209,8 @@ app.get('/api/scans', (req, res) => {
 app.post('/api/scans', (req, res) => {
   try {
     const scanData = req.body;
-    const userId = req.user ? req.user.id : 'USR-GUEST';
-    const userName = req.user ? req.user.name : scanData.workerName || 'Worker';
+    const userId = req.user ? req.user.id : (scanData.userId || 'USR-GUEST');
+    const userName = req.user ? req.user.name : (scanData.workerName || 'Worker');
 
     const fullScanRecord = {
       ...scanData,
@@ -222,13 +222,23 @@ app.post('/api/scans', (req, res) => {
 
     db.addScan(fullScanRecord);
 
-    // Trigger critical exposure alert ONLY if dose >= 90 ppm·h
-    if (fullScanRecord.dose >= 90) {
+    // Trigger exposure alerts for dose >= 20 ppm·h (Action Level & High Exposure)
+    if (fullScanRecord.dose >= 20) {
+      let title = `Action Level Exposure Reached (${fullScanRecord.dose} ppm·h)`;
+      let sev = 'Warning';
+      if (fullScanRecord.dose >= 180) {
+        title = `EXTREME Exposure Detected (${fullScanRecord.dose} ppm·h)`;
+        sev = 'Critical';
+      } else if (fullScanRecord.dose >= 90) {
+        title = `Critical High Exposure Detected (${fullScanRecord.dose} ppm·h)`;
+        sev = 'Critical';
+      }
+
       db.addAlert({
-        id: 'ALT-' + Math.floor(100 + Math.random() * 900),
-        title: `Critical High Exposure Detected (${fullScanRecord.dose} ppm·h)`,
-        detail: `${userName} · Badge ${fullScanRecord.badgeId || 'H2S-001'} logged critical exposure level`,
-        sev: 'Critical',
+        id: 'ALT-' + Math.floor(1000 + Math.random() * 9000),
+        title,
+        detail: `${userName} · Badge ${fullScanRecord.badgeId || 'H2S-001'} logged shift exposure measurement`,
+        sev,
         time: 'Just now',
         userId: userId,
         workerId: userId,

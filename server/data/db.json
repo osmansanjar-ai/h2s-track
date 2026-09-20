@@ -195,6 +195,30 @@
   ],
   "scans": [
     {
+      "id": "SCN-3846",
+      "date": "20 Sep 2026",
+      "isoDate": "2026-09-20",
+      "time": "23:50",
+      "shift": "08:00–16:00",
+      "workerId": "USR-7238",
+      "workerName": "lololo",
+      "badgeId": "H2S-W-801",
+      "batchId": "H2S-2026-001",
+      "dose": 24.1,
+      "uncertainty": 1.4,
+      "status": "Action Level Reached",
+      "quality": "Good",
+      "rgb": {
+        "r": 213,
+        "g": 221,
+        "b": 200
+      },
+      "deltaE": 10.83,
+      "calibration": "XGBoost Regressor (MDPI Calibrated - Retrained)",
+      "userId": "USR-7238",
+      "createdAt": "2026-09-20T18:20:22.132Z"
+    },
+    {
       "id": "SCN-6717",
       "date": "20 Sep 2026",
       "isoDate": "2026-09-20",
@@ -756,6 +780,15 @@
     }
   ],
   "alerts": [
+    {
+      "id": "ALT-974",
+      "title": "Elevated dose logged (24.1 ppm·h)",
+      "detail": "lololo · Badge H2S-W-801 logged elevated exposure",
+      "sev": "Critical",
+      "time": "Just now",
+      "workerId": "USR-7238",
+      "acknowledged": false
+    },
     {
       "id": "ALT-261",
       "title": "Elevated dose logged (24.1 ppm·h)",

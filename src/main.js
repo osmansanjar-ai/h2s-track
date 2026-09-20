@@ -57,14 +57,16 @@ document.addEventListener('alpine:init', () => {
     get filteredAlerts() {
       if (!this.currentUser) return this.alerts;
       if (this.currentUser.role === 'worker') {
-        // Workers ONLY see safety & shift alerts matching their own name/IDs
         return this.alerts.filter(a =>
-          a.workerName === this.currentUser.name ||
+          !a.userId ||
+          a.userId === 'USR-GUEST' ||
+          a.userId === this.currentUser.id ||
+          a.workerId === this.currentUser.id ||
           a.workerId === this.currentUser.workerId ||
-          a.userId === this.currentUser.id
+          a.workerName === this.currentUser.name ||
+          a.workerName === 'Worker'
         );
       }
-      // Safety Officers see company alerts
       return this.alerts.filter(a => {
         if (!this.currentUser.company || this.currentUser.company === 'Independent') return true;
         return a.company === this.currentUser.company || !a.company || a.company === 'Panvel Gas Terminal';
@@ -75,9 +77,13 @@ document.addEventListener('alpine:init', () => {
       if (!this.currentUser) return this.history;
       if (this.currentUser.role === 'worker') {
         return this.history.filter(h =>
-          h.workerName === this.currentUser.name ||
+          !h.userId ||
+          h.userId === 'USR-GUEST' ||
+          h.userId === this.currentUser.id ||
+          h.workerId === this.currentUser.id ||
           h.workerId === this.currentUser.workerId ||
-          h.userId === this.currentUser.id
+          h.workerName === this.currentUser.name ||
+          h.workerName === 'Worker'
         );
       }
       return this.history;
@@ -188,6 +194,10 @@ document.addEventListener('alpine:init', () => {
 
       this.$watch('simulatedDose', () => {
         this.renderSimulatedBadge();
+      });
+
+      this.$watch('rangeFilter', () => {
+        this.renderCharts();
       });
 
       this.renderIcons();
@@ -641,20 +651,42 @@ document.addEventListener('alpine:init', () => {
 
     async saveLastScan() {
       if (this.lastScanResult) {
-        // Optimistically add to client history
-        this.history.unshift({ ...this.lastScanResult });
+        const userName = this.currentUser ? this.currentUser.name : 'Worker';
+        const userId = this.currentUser ? this.currentUser.id : 'USR-GUEST';
+        const userCompany = this.currentUser ? this.currentUser.company : '';
 
-        // If dose >= 90 ppm·h, create & prepend alert immediately
-        if (this.lastScanResult.dose >= 90) {
-          const userName = this.currentUser ? this.currentUser.name : 'Worker';
-          const userId = this.currentUser ? this.currentUser.id : 'USR-GUEST';
-          const userCompany = this.currentUser ? this.currentUser.company : '';
+        const formattedScan = {
+          ...this.lastScanResult,
+          id: 'SCN-' + Math.floor(1000 + Math.random() * 9000),
+          userId,
+          workerName: userName,
+          workerId: this.currentUser ? (this.currentUser.workerId || userId) : 'W-001',
+          date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+          shift: '08:00–16:00',
+          badgeId: this.lastScanResult.badgeId || 'H2S-001'
+        };
+
+        // Optimistically add to client history
+        this.history.unshift(formattedScan);
+
+        // Generate exposure alert for dose >= 20 ppm·h
+        if (formattedScan.dose >= 20) {
+          let title = `Action Level Exposure Reached (${formattedScan.dose} ppm·h)`;
+          let sev = 'Warning';
+          if (formattedScan.dose >= 180) {
+            title = `EXTREME Exposure Detected (${formattedScan.dose} ppm·h)`;
+            sev = 'Critical';
+          } else if (formattedScan.dose >= 90) {
+            title = `Critical High Exposure Detected (${formattedScan.dose} ppm·h)`;
+            sev = 'Critical';
+          }
 
           const newAlert = {
-            id: 'ALT-' + Math.floor(100 + Math.random() * 900),
-            title: `Critical High Exposure Detected (${this.lastScanResult.dose} ppm·h)`,
-            detail: `${userName} · Badge ${this.lastScanResult.badgeId || 'H2S-001'} logged critical exposure level`,
-            sev: 'Critical',
+            id: 'ALT-' + Math.floor(1000 + Math.random() * 9000),
+            title,
+            detail: `${userName} · Badge ${formattedScan.badgeId} logged exposure measurement`,
+            sev,
             time: 'Just now',
             userId: userId,
             workerId: userId,
@@ -672,7 +704,7 @@ document.addEventListener('alpine:init', () => {
           const res = await fetch('/api/scans', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authHeader },
-            body: JSON.stringify(this.lastScanResult)
+            body: JSON.stringify(formattedScan)
           });
           if (res.ok) {
             await this.refreshData();
@@ -682,7 +714,7 @@ document.addEventListener('alpine:init', () => {
         }
       }
 
-      this.view = 'home';
+      this.view = 'history';
       this.$nextTick(() => {
         this.renderIcons();
         this.renderCharts();
@@ -699,7 +731,7 @@ document.addEventListener('alpine:init', () => {
       const scanToExport = this.lastScanResult || {
         dose: 0.0,
         badgeId: 'H2S-001',
-        batchId: 'H2S-2026-001',
+        batchId: '202609-2701',
         date: new Date().toLocaleDateString('en-GB'),
         shift: '08:00–16:00'
       };
@@ -707,68 +739,82 @@ document.addEventListener('alpine:init', () => {
     },
 
     renderCharts() {
-      let filtered = [...this.filteredHistory];
-      if (this.rangeFilter === 'Weekly') {
-        filtered = filtered.slice(0, 7);
-      } else if (this.rangeFilter === 'Monthly') {
-        filtered = filtered.slice(0, 30);
-      }
+      this.$nextTick(() => {
+        let filtered = [...this.filteredHistory];
+        if (this.rangeFilter === 'Weekly') {
+          filtered = filtered.slice(0, 7);
+        } else if (this.rangeFilter === 'Monthly') {
+          filtered = filtered.slice(0, 30);
+        }
 
-      const labels = filtered.map(h => h.date).reverse();
-      const data = filtered.map(h => h.dose).reverse();
-
-      ['historyChart', 'officerChart'].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-
-        if (el._chart) el._chart.destroy();
+        const labels = filtered.map(h => h.date ? (h.date.split(' ')[0] + ' ' + (h.date.split(' ')[1] || '')) : 'Today').reverse();
+        const data = filtered.map(h => (typeof h.dose === 'number' ? h.dose : parseFloat(h.dose) || 0)).reverse();
 
         if (labels.length === 0) {
           labels.push('Today');
           data.push(0);
         }
 
-        const ctx = el.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 180);
-        gradient.addColorStop(0, 'rgba(245, 158, 11, 0.35)');
-        gradient.addColorStop(1, 'rgba(245, 158, 11, 0.01)');
+        ['historyChart', 'officerChart'].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
 
-        el._chart = new Chart(el, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [{
-              data,
-              borderColor: '#F59E0B',
-              backgroundColor: gradient,
-              fill: true,
-              tension: 0.35,
-              pointRadius: 5,
-              pointBackgroundColor: '#B45309',
-              pointBorderColor: '#FFFFFF',
-              pointBorderWidth: 2,
-              borderWidth: 2.5
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false }
+          if (el._chart) {
+            try { el._chart.destroy(); } catch (e) {}
+          }
+
+          const ctx = el.getContext('2d');
+          const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+          gradient.addColorStop(0, 'rgba(245, 158, 11, 0.40)');
+          gradient.addColorStop(1, 'rgba(245, 158, 11, 0.01)');
+
+          const maxVal = Math.max(50, ...data);
+
+          el._chart = new Chart(el, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [{
+                label: 'H₂S Exposure (ppm·h)',
+                data,
+                borderColor: '#F59E0B',
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#B45309',
+                pointBorderColor: '#FFFFFF',
+                pointBorderWidth: 2,
+                borderWidth: 3
+              }]
             },
-            scales: {
-              y: {
-                grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                ticks: { color: '#64748B', font: { size: 10, weight: '600' } },
-                suggestedMin: 0,
-                suggestedMax: 50
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  enabled: true,
+                  callbacks: {
+                    label: (ctx) => `${ctx.parsed.y} ppm·h`
+                  }
+                }
               },
-              x: {
-                grid: { display: false },
-                ticks: { color: '#64748B', font: { size: 10, weight: '600' } }
+              scales: {
+                y: {
+                  grid: { color: 'rgba(0, 0, 0, 0.06)' },
+                  ticks: { color: '#64748B', font: { size: 11, weight: '600' } },
+                  suggestedMin: 0,
+                  suggestedMax: maxVal + 10
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: { color: '#64748B', font: { size: 10, weight: '600' } }
+                }
               }
             }
-          }
+          });
         });
       });
     }
