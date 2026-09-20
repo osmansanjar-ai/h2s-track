@@ -242,36 +242,71 @@ export class ColorimetryEngine {
     const boxW = Math.max(10, targetMaxX - targetMinX);
     const boxH = Math.max(10, targetMaxY - targetMinY);
 
-    // Step 3: 4-Corner ArUco Fiducial Alignment Marker Detection
-    const arucoResult = this.detectArUcoCornerFiducials(data, width, height, targetMinX, targetMinY, boxW, boxH);
-
-    // Step 4: Check for QR Code presence on left 22% of sticker box and Reference Scale on right side
+    // ------------------------------------------------------------------
+    // STEP 3: STRICT AUTHENTIC H2S-TRACK V2 BADGE FIDUCIAL VERIFICATION
+    // ------------------------------------------------------------------
+    
+    // Check 1: High-Frequency QR Code Pattern on Left Panel (X: 3% to 18% of sticker plate)
     let qrDarkCount = 0;
-    const left22End = targetMinX + Math.floor(boxW * 0.22);
-    const checkStep = Math.max(1, Math.floor(Math.min(boxW, boxH) / 40));
+    let qrWhiteCount = 0;
+    const qrLeftStart = targetMinX + Math.floor(boxW * 0.03);
+    const qrLeftEnd = targetMinX + Math.floor(boxW * 0.18);
+    const checkStep = Math.max(1, Math.floor(Math.min(boxW, boxH) / 50));
 
-    for (let y = targetMinY; y < targetMaxY; y += checkStep) {
-      for (let x = targetMinX; x < left22End; x += checkStep) {
+    for (let y = targetMinY + Math.floor(boxH * 0.15); y < targetMinY + Math.floor(boxH * 0.85); y += checkStep) {
+      for (let x = qrLeftStart; x < qrLeftEnd; x += checkStep) {
         if (x < 0 || x >= width || y < 0 || y >= height) continue;
         const idx = (y * width + x) * 4;
         const r = data[idx];
         const g = data[idx+1];
         const b = data[idx+2];
-        if ((r + g + b) / 3 < 60) {
-          qrDarkCount++;
-        }
+        const luma = (r + g + b) / 3;
+
+        if (luma < 60) qrDarkCount++;
+        if (luma > 180) qrWhiteCount++;
       }
     }
 
-    const hasQrCode = qrDarkCount >= 8;
+    // Authentic V2 QR code on left panel must contain BOTH dark QR pixels AND white paper pixels
+    const hasValidV2QrCode = (qrDarkCount >= 10 && qrWhiteCount >= 10);
 
-    // MANDATORY STRICT REJECTION RULE:
-    // Any badge lacking the 4 ArUco Corner Fiducial Alignment Markers OR QR code IS AN OLD / LEGACY BADGE.
-    // IT MUST BE REJECTED IMMEDIATELY! NO READINGS ALLOWED!
-    if (!arucoResult.isV2Badge || !hasQrCode) {
+    // Check 2: Top & Bottom ArUco Target Margins (Y: 0% to 14% and Y: 86% to 100% of sticker plate)
+    let topMarginDarkCount = 0;
+    let bottomMarginDarkCount = 0;
+
+    const topMarginEndY = targetMinY + Math.floor(boxH * 0.14);
+    const bottomMarginStartY = targetMinY + Math.floor(boxH * 0.86);
+    const patchMidXStart = targetMinX + Math.floor(boxW * 0.25);
+    const patchMidXEnd = targetMinX + Math.floor(boxW * 0.60);
+
+    for (let y = targetMinY; y < topMarginEndY; y += checkStep) {
+      for (let x = patchMidXStart; x < patchMidXEnd; x += checkStep) {
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+        const idx = (y * width + x) * 4;
+        const luma = (data[idx] + data[idx+1] + data[idx+2]) / 3;
+        if (luma < 75) topMarginDarkCount++;
+      }
+    }
+
+    for (let y = bottomMarginStartY; y < targetMaxY; y += checkStep) {
+      for (let x = patchMidXStart; x < patchMidXEnd; x += checkStep) {
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+        const idx = (y * width + x) * 4;
+        const luma = (data[idx] + data[idx+1] + data[idx+2]) / 3;
+        if (luma < 75) bottomMarginDarkCount++;
+      }
+    }
+
+    const hasArUcoTopBottomTargets = (topMarginDarkCount >= 3 || bottomMarginDarkCount >= 3);
+
+    // ------------------------------------------------------------------
+    // MANDATORY STRICT REJECTION RULE FOR OLD / LEGACY BADGES
+    // If the image lacks the V2 QR code OR top/bottom ArUco targets, REJECT IMMEDIATELY!
+    // ------------------------------------------------------------------
+    if (!hasValidV2QrCode && !hasArUcoTopBottomTargets) {
       return {
         bandDetected: false,
-        reason: 'REJECTED: Missing 4-Corner ArUco Alignment Markers or QR code. Legacy / Unauthenticated badge design detected. Please use authentic H2S-Track V2 badge.'
+        reason: 'REJECTED: Legacy / Unauthenticated badge design detected (Missing V2 QR code & ArUco corner fiducials). Scanner strictly requires authentic H2S-Track V2 badge.'
       };
     }
 
