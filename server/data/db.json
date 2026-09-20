@@ -122,6 +122,19 @@
       "site": "Personal Workspace",
       "unit": "Operations",
       "createdAt": "2026-09-20T18:12:07.076Z"
+    },
+    {
+      "id": "USR-3138",
+      "workerId": "W-861",
+      "name": "fahh",
+      "email": "d@g.com",
+      "passwordHash": "$2a$10$BQYzLu90ErWQnjfMHKu7NujBwPWmGJd/FXX4NGUDxPaAVbNrG3.S2",
+      "role": "worker",
+      "company": "Independent",
+      "companyStatus": "Approved",
+      "site": "Personal Workspace",
+      "unit": "Operations",
+      "createdAt": "2026-09-20T18:35:40.970Z"
     }
   ],
   "batches": [
@@ -194,6 +207,30 @@
     }
   ],
   "scans": [
+    {
+      "id": "SCN-2193",
+      "date": "20 Sep 2026",
+      "isoDate": "2026-09-20",
+      "time": "23:56",
+      "shift": "08:00–16:00",
+      "workerId": "W-801",
+      "workerName": "lololo",
+      "badgeId": "H2S-W-801",
+      "batchId": "H2S-2026-001",
+      "dose": 80.6,
+      "uncertainty": 1.4,
+      "status": "Action Level Reached",
+      "quality": "Good",
+      "rgb": {
+        "r": 164,
+        "g": 174,
+        "b": 151
+      },
+      "deltaE": 26.84,
+      "calibration": "XGBoost Regressor (MDPI Calibrated - Retrained)",
+      "userId": "USR-7238",
+      "createdAt": "2026-09-20T18:26:47.175Z"
+    },
     {
       "id": "SCN-3846",
       "date": "20 Sep 2026",
@@ -780,6 +817,15 @@
     }
   ],
   "alerts": [
+    {
+      "id": "ALT-752",
+      "title": "Elevated dose logged (80.6 ppm·h)",
+      "detail": "lololo · Badge H2S-W-801 logged elevated exposure",
+      "sev": "Critical",
+      "time": "Just now",
+      "workerId": "USR-7238",
+      "acknowledged": false
+    },
     {
       "id": "ALT-974",
       "title": "Elevated dose logged (24.1 ppm·h)",
