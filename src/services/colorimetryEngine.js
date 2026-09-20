@@ -238,8 +238,8 @@ export class ColorimetryEngine {
         const isWhitePaper = (r > 242 && g > 242 && b > 240 && (Math.max(r, g, b) - Math.min(r, g, b)) < 15);
         // Filter out yellow silicone substrate
         const isYellowSilicone = (r > 160 && g > 140 && (g - b) > 45 && r > b + 50);
-        // Filter out dark outline borders & QR pixels
-        const isDarkOutline = (luma < 40);
+        // Filter out dark outline borders & QR pixels (only ultra-black printed ink < 12 luma)
+        const isDarkOutline = (luma < 12);
 
         if (!isWhitePaper && !isYellowSilicone && !isDarkOutline) {
           totalR += r;
@@ -266,7 +266,7 @@ export class ColorimetryEngine {
           const b = data[idx+2];
           const luma = (r + g + b) / 3;
 
-          const isDark = (luma < 45);
+          const isDark = (luma < 12);
           const isYellow = (r > 130 && g > 110 && (g - b) > 55);
 
           if (!isDark && !isYellow) {

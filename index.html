@@ -22,6 +22,47 @@
 
 <div x-data="app" x-init="init()" x-cloak class="min-h-screen">
 
+  <!-- ============ CRITICAL HEALTH EXPOSURE ALERT MODAL ============ -->
+  <div x-show="healthAlertModal.active" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs px-4">
+    <div class="bg-white border-2 border-red-500 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div class="w-14 h-14 rounded-full bg-red-100 border-2 border-red-500 text-red-600 flex items-center justify-center mx-auto mb-4 animate-pulse">
+        <i data-lucide="triangle-alert" class="w-8 h-8"></i>
+      </div>
+      
+      <div class="inline-block px-3 py-1 rounded-full bg-red-600 text-white font-extrabold text-[10px] tracking-wider uppercase mb-2 mx-auto text-center w-full">
+        ⚠️ CRITICAL HEALTH HAZARD ALERT
+      </div>
+
+      <h3 class="font-display font-extrabold text-xl text-center text-ink mb-1">
+        Elevated H₂S Exposure Detected!
+      </h3>
+
+      <div class="my-3 py-3 px-4 rounded-xl bg-red-50 border border-red-200 text-center">
+        <span class="text-[11px] font-bold text-red-700 block uppercase tracking-wider">Measured Shift Exposure</span>
+        <span class="font-display font-extrabold text-4xl text-red-600 num-tabular my-1 block" x-text="healthAlertModal.dose + ' ppm·h'"></span>
+        <span class="text-[11px] text-red-700 block font-bold" x-text="healthAlertModal.status"></span>
+      </div>
+
+      <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-left text-xs text-amber-900 space-y-2 mb-5">
+        <div class="font-bold flex items-center gap-1.5 text-amber-800">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-red-600 shrink-0"></i>
+          <span>IMMEDIATE SAFETY ACTION REQUIRED:</span>
+        </div>
+        <ul class="list-disc list-inside space-y-1 text-[11px] text-ink/80 font-medium pl-1">
+          <li>Evacuate work area immediately to upwind safety point.</li>
+          <li>Report reading to plant EHS / Safety Control Officer.</li>
+          <li>Seek immediate medical check if feeling dizzy or unwell.</li>
+        </ul>
+      </div>
+
+      <div class="flex gap-2">
+        <button @click="healthAlertModal.active=false" class="w-full py-3 rounded-xl bg-red-600 text-white font-extrabold text-xs hover:bg-red-700 transition shadow-md flex items-center justify-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4"></i> Acknowledge Safety Alert
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ REJECTION UI MODAL ============ -->
   <div x-show="rejectionModal.active" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
     <div class="bg-white border border-line rounded-2xl p-6 max-w-md w-full shadow-2xl">
@@ -112,19 +153,20 @@
         <!-- Nav -->
         <header class="max-w-6xl mx-auto flex items-center justify-between px-6 py-6">
           <div class="flex items-center gap-2.5">
-            <svg width="30" height="30" viewBox="0 0 32 32" fill="none" class="shrink-0 drop-shadow-xs">
-  <rect width="32" height="32" rx="9" fill="url(#h2sLogoGrad)"/>
-  <circle cx="16" cy="16" r="8.5" stroke="white" stroke-width="2" stroke-opacity="0.95"/>
-  <circle cx="16" cy="16" r="4" fill="white"/>
-  <circle cx="16" cy="16" r="1.8" fill="#0F172A"/>
-  <path d="M22.5 9.5C24.2 11.2 25 13.5 25 16" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.85"/>
-  <defs>
-    <linearGradient id="h2sLogoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F59E0B"/>
-      <stop offset="1" stop-color="#B45309"/>
-    </linearGradient>
-  </defs>
-</svg>
+            <svg width="30" height="30" viewBox="0 0 36 36" fill="none" class="shrink-0 drop-shadow-xs">
+              <path d="M18 3L5 8.5V17.5C5 25.5 10.5 32 18 34.5C25.5 32 31 25.5 31 17.5V8.5L18 3Z" fill="url(#h2sLogoGrad)" stroke="#D97706" stroke-width="1.5" stroke-linejoin="round"/>
+              <circle cx="18" cy="18" r="7.5" stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.95" stroke-dasharray="14 3"/>
+              <circle cx="18" cy="18" r="3.5" fill="#FFFFFF"/>
+              <circle cx="18" cy="18" r="1.8" fill="#0F172A"/>
+              <circle cx="12" cy="18" r="1.2" fill="#FFFFFF" fill-opacity="0.8"/>
+              <circle cx="24" cy="18" r="1.2" fill="#FFFFFF" fill-opacity="0.8"/>
+              <defs>
+                <linearGradient id="h2sLogoGrad" x1="5" y1="3" x2="31" y2="34.5" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#F59E0B"/>
+                  <stop offset="1" stop-color="#B45309"/>
+                </linearGradient>
+              </defs>
+            </svg>
             <span class="font-display font-extrabold text-lg tracking-tight">H₂S-Track</span>
           </div>
           <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-ink/70">
@@ -138,6 +180,8 @@
                 <option value="en">🇬🇧 English</option>
                 <option value="hi">🇮🇳 हिंदी (Hindi)</option>
                 <option value="mr">🇮🇳 मराठी (Marathi)</option>
+                <option value="kn">🇮🇳 ಕನ್ನಡ (Kannada)</option>
+                <option value="tu">🇮🇳 ತುಳು (Tulu)</option>
               </select>
               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-ink/50">
                 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
@@ -157,6 +201,8 @@
                 <option value="en">🇬🇧 EN</option>
                 <option value="hi">🇮🇳 हि</option>
                 <option value="mr">🇮🇳 म</option>
+                <option value="kn">🇮🇳 ಕ</option>
+                <option value="tu">🇮🇳 ತು</option>
               </select>
               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-ink/50">
                 <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
@@ -203,6 +249,56 @@
               <text x="176" y="150" font-family="Inter" font-size="5.5" font-weight="700" fill="#1C1E21">EXP 2028</text>
               <text x="114" y="158" font-family="Inter" font-size="6.5" fill="#1C1E21" opacity="0.7">H2S-2026-001 · EXP: 2028-12-31</text>
             </svg>
+          </div>
+        </section>
+
+        <!-- Calibrated 5-Step Reference Scale Section -->
+        <section class="bg-amber-50/60 border-y border-line py-12">
+          <div class="max-w-6xl mx-auto px-6">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xs font-bold text-amber-800 uppercase tracking-wider bg-amber-200/80 px-2.5 py-0.5 rounded-md border border-amber-300">Calibrated Chemical Scale</span>
+            </div>
+            <h2 class="font-display font-extrabold text-2xl mb-2 text-ink">Copper(II) Acetate 5-Step Reference Palette</h2>
+            <p class="text-xs text-ink/70 max-w-2xl mb-8 leading-relaxed">
+              Our reactive chemical substrate shifts from Mint Green to Near-Black CuS upon gas absorption (<span class="font-mono text-amber-900 font-semibold">Cu(CH₃COO)₂ + H₂S → CuS↓ + 2 CH₃COOH</span>). The XGBoost ML model evaluates these 5 calibrated colorimetric steps:
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-4">
+              <div class="bg-white p-4 rounded-xl border border-line shadow-xs hover:border-amber-400 transition">
+                <div class="w-full h-10 rounded-lg mb-3 border border-black/10 shadow-inner" style="background-color: #E1F0E5;"></div>
+                <p class="font-bold text-xs text-ink">1. Mint Green</p>
+                <p class="font-mono text-[11px] font-bold text-emerald-600 mt-0.5">0.0 ppm·h</p>
+                <p class="text-[10px] text-ink/50 mt-1 font-medium">Fresh / Unexposed</p>
+              </div>
+
+              <div class="bg-white p-4 rounded-xl border border-line shadow-xs hover:border-amber-400 transition">
+                <div class="w-full h-10 rounded-lg mb-3 border border-black/10 shadow-inner" style="background-color: #B5C4AA;"></div>
+                <p class="font-bold text-xs text-ink">2. Light Sage</p>
+                <p class="font-mono text-[11px] font-bold text-amber-600 mt-0.5">5 – 20 ppm·h</p>
+                <p class="text-[10px] text-ink/50 mt-1 font-medium">Trace Shift Exposure</p>
+              </div>
+
+              <div class="bg-white p-4 rounded-xl border border-line shadow-xs hover:border-amber-400 transition">
+                <div class="w-full h-10 rounded-lg mb-3 border border-black/10 shadow-inner" style="background-color: #8C846D;"></div>
+                <p class="font-bold text-xs text-ink">3. Muted Olive</p>
+                <p class="font-mono text-[11px] font-bold text-amber-700 mt-0.5">25 – 60 ppm·h</p>
+                <p class="text-[10px] text-ink/50 mt-1 font-medium">Action Level Reached</p>
+              </div>
+
+              <div class="bg-white p-4 rounded-xl border border-line shadow-xs hover:border-amber-400 transition">
+                <div class="w-full h-10 rounded-lg mb-3 border border-black/10 shadow-inner" style="background-color: #595244;"></div>
+                <p class="font-bold text-xs text-ink">4. Dark Grey</p>
+                <p class="font-mono text-[11px] font-bold text-orange-600 mt-0.5">90 – 180 ppm·h</p>
+                <p class="text-[10px] text-ink/50 mt-1 font-medium">Critical Exposure Level</p>
+              </div>
+
+              <div class="bg-white p-4 rounded-xl border border-line shadow-xs hover:border-amber-400 transition">
+                <div class="w-full h-10 rounded-lg mb-3 border border-black/10 shadow-inner" style="background-color: #262420;"></div>
+                <p class="font-bold text-xs text-ink">5. Near-Black CuS</p>
+                <p class="font-mono text-[11px] font-bold text-red-600 mt-0.5">240.0 ppm·h</p>
+                <p class="text-[10px] text-ink/50 mt-1 font-medium">Heavy Saturation Level</p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -259,19 +355,20 @@
       <div class="w-full max-w-md">
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-2.5">
-            <svg width="30" height="30" viewBox="0 0 32 32" fill="none" class="shrink-0 drop-shadow-xs">
-  <rect width="32" height="32" rx="9" fill="url(#h2sLogoGrad)"/>
-  <circle cx="16" cy="16" r="8.5" stroke="white" stroke-width="2" stroke-opacity="0.95"/>
-  <circle cx="16" cy="16" r="4" fill="white"/>
-  <circle cx="16" cy="16" r="1.8" fill="#0F172A"/>
-  <path d="M22.5 9.5C24.2 11.2 25 13.5 25 16" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.85"/>
-  <defs>
-    <linearGradient id="h2sLogoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F59E0B"/>
-      <stop offset="1" stop-color="#B45309"/>
-    </linearGradient>
-  </defs>
-</svg>
+            <svg width="30" height="30" viewBox="0 0 36 36" fill="none" class="shrink-0 drop-shadow-xs">
+              <path d="M18 3L5 8.5V17.5C5 25.5 10.5 32 18 34.5C25.5 32 31 25.5 31 17.5V8.5L18 3Z" fill="url(#h2sLogoGrad)" stroke="#D97706" stroke-width="1.5" stroke-linejoin="round"/>
+              <circle cx="18" cy="18" r="7.5" stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.95" stroke-dasharray="14 3"/>
+              <circle cx="18" cy="18" r="3.5" fill="#FFFFFF"/>
+              <circle cx="18" cy="18" r="1.8" fill="#0F172A"/>
+              <circle cx="12" cy="18" r="1.2" fill="#FFFFFF" fill-opacity="0.8"/>
+              <circle cx="24" cy="18" r="1.2" fill="#FFFFFF" fill-opacity="0.8"/>
+              <defs>
+                <linearGradient id="h2sLogoGrad" x1="5" y1="3" x2="31" y2="34.5" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#F59E0B"/>
+                  <stop offset="1" stop-color="#B45309"/>
+                </linearGradient>
+              </defs>
+            </svg>
             <span class="font-display font-extrabold text-xl">H₂S-Track</span>
           </div>
 
@@ -282,6 +379,8 @@
               <option value="en">🇬🇧 English</option>
               <option value="hi">🇮🇳 हिंदी</option>
               <option value="mr">🇮🇳 मराठी</option>
+              <option value="kn">🇮🇳 ಕನ್ನಡ</option>
+              <option value="tu">🇮🇳 ತುಳು</option>
             </select>
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-ink/50">
               <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
@@ -405,19 +504,20 @@
       <!-- Desktop Sidebar -->
       <aside class="hidden md:flex md:flex-col md:w-64 md:shrink-0 border-r border-line bg-white px-4 py-6">
         <div class="flex items-center gap-2.5 px-2 mb-6">
-          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" class="shrink-0 drop-shadow-xs">
-  <rect width="32" height="32" rx="9" fill="url(#h2sLogoGrad)"/>
-  <circle cx="16" cy="16" r="8.5" stroke="white" stroke-width="2" stroke-opacity="0.95"/>
-  <circle cx="16" cy="16" r="4" fill="white"/>
-  <circle cx="16" cy="16" r="1.8" fill="#0F172A"/>
-  <path d="M22.5 9.5C24.2 11.2 25 13.5 25 16" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.85"/>
-  <defs>
-    <linearGradient id="h2sLogoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F59E0B"/>
-      <stop offset="1" stop-color="#B45309"/>
-    </linearGradient>
-  </defs>
-</svg>
+          <svg width="30" height="30" viewBox="0 0 36 36" fill="none" class="shrink-0 drop-shadow-xs">
+            <path d="M18 3L5 8.5V17.5C5 25.5 10.5 32 18 34.5C25.5 32 31 25.5 31 17.5V8.5L18 3Z" fill="url(#h2sLogoGrad)" stroke="#D97706" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="18" cy="18" r="7.5" stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.95" stroke-dasharray="14 3"/>
+            <circle cx="18" cy="18" r="3.5" fill="#FFFFFF"/>
+            <circle cx="18" cy="18" r="1.8" fill="#0F172A"/>
+            <circle cx="12" cy="18" r="1.2" fill="#FFFFFF" fill-opacity="0.8"/>
+            <circle cx="24" cy="18" r="1.2" fill="#FFFFFF" fill-opacity="0.8"/>
+            <defs>
+              <linearGradient id="h2sLogoGrad" x1="5" y1="3" x2="31" y2="34.5" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#F59E0B"/>
+                <stop offset="1" stop-color="#B45309"/>
+              </linearGradient>
+            </defs>
+          </svg>
           <span class="font-display font-extrabold text-base">H₂S-Track</span>
         </div>
 
@@ -443,6 +543,8 @@
             <option value="en">🇬🇧 EN</option>
             <option value="hi">🇮🇳 हिंदी</option>
             <option value="mr">🇮🇳 मराठी</option>
+            <option value="kn">🇮🇳 ಕನ್ನಡ</option>
+            <option value="tu">🇮🇳 ತುಳು</option>
           </select>
         </div>
 
@@ -476,19 +578,20 @@
         <!-- Header Bar for Mobile -->
         <div class="md:hidden bg-white border-b border-line px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-3 flex items-center justify-between shadow-xs sticky top-0 z-20">
           <div class="flex items-center gap-2">
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" class="shrink-0 drop-shadow-xs">
-  <rect width="32" height="32" rx="9" fill="url(#h2sLogoGrad)"/>
-  <circle cx="16" cy="16" r="8.5" stroke="white" stroke-width="2" stroke-opacity="0.95"/>
-  <circle cx="16" cy="16" r="4" fill="white"/>
-  <circle cx="16" cy="16" r="1.8" fill="#0F172A"/>
-  <path d="M22.5 9.5C24.2 11.2 25 13.5 25 16" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.85"/>
-  <defs>
-    <linearGradient id="h2sLogoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F59E0B"/>
-      <stop offset="1" stop-color="#B45309"/>
-    </linearGradient>
-  </defs>
-</svg>
+            <svg width="28" height="28" viewBox="0 0 36 36" fill="none" class="shrink-0 drop-shadow-xs">
+              <path d="M18 3L5 8.5V17.5C5 25.5 10.5 32 18 34.5C25.5 32 31 25.5 31 17.5V8.5L18 3Z" fill="url(#h2sLogoGrad)" stroke="#D97706" stroke-width="1.5" stroke-linejoin="round"/>
+              <circle cx="18" cy="18" r="7.5" stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.95" stroke-dasharray="14 3"/>
+              <circle cx="18" cy="18" r="3.5" fill="#FFFFFF"/>
+              <circle cx="18" cy="18" r="1.8" fill="#0F172A"/>
+              <circle cx="12" cy="18" r="1.2" fill="#FFFFFF" fill-opacity="0.8"/>
+              <circle cx="24" cy="18" r="1.2" fill="#FFFFFF" fill-opacity="0.8"/>
+              <defs>
+                <linearGradient id="h2sLogoGrad" x1="5" y1="3" x2="31" y2="34.5" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#F59E0B"/>
+                  <stop offset="1" stop-color="#B45309"/>
+                </linearGradient>
+              </defs>
+            </svg>
             <span class="font-display font-bold text-sm">H₂S-Track</span>
           </div>
           <div class="flex items-center gap-2">
@@ -497,6 +600,8 @@
               <option value="en">🇬🇧 EN</option>
               <option value="hi">🇮🇳 हि</option>
               <option value="mr">🇮🇳 म</option>
+              <option value="kn">🇮🇳 ಕ</option>
+              <option value="tu">🇮🇳 ತು</option>
             </select>
             <span class="text-xs font-bold text-ink truncate max-w-[85px]" x-text="currentUser ? currentUser.name : 'Ramesh'"></span>
             <button @click="logout()" class="text-xs text-bad font-semibold ml-0.5" x-text="t('signOut')">Sign out</button>
@@ -724,8 +829,9 @@
                 </template>
               </div>
 
-              <button x-show="!scanning" @click="runScan()" class="w-full rounded-xl bg-yellow-DEFAULT text-ink font-bold py-3.5 hover:brightness-95 transition shadow-sm" x-text="t('captureCalculate')">
-                Capture & Calculate Shift Exposure
+              <button x-show="!scanning" @click="runScan()" class="w-full rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-ink font-extrabold text-sm py-4 hover:brightness-105 transition shadow-lg ring-4 ring-amber-400/30 active:scale-[0.99] flex items-center justify-center gap-2">
+                <i data-lucide="zap" class="w-4 h-4 text-ink"></i>
+                <span x-text="t('captureCalculate')">Capture & Calculate Shift Exposure</span>
               </button>
               <p x-show="scanning" class="text-center text-xs font-semibold text-amber-600 animate-pulse py-2" x-text="t('analyzingReflectance')">
                 Analyzing sensor patch reflectance & color shift…
@@ -1205,50 +1311,41 @@
       </div>
 
       <!-- Mobile Bottom Nav -->
-      <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-line px-3 pt-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] flex justify-around items-center z-30 shadow-lg">
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-line px-2 py-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] flex justify-around items-center z-30 shadow-lg">
         
         <!-- HOME -->
-        <button @click="view='home'" class="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition"
-          :class="view==='home' ? 'text-ink font-bold scale-105' : 'text-ink/40 hover:text-ink'">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 00-1 1m-6 0h6"/>
-          </svg>
-          <span class="text-[10px]" x-text="t('navHome')">Home</span>
+        <button @click="view='home'" class="flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition"
+          :class="view==='home' ? 'text-amber-600 font-bold' : 'text-ink/40 hover:text-ink'">
+          <i data-lucide="home" class="w-5 h-5"></i>
+          <span class="text-[10px] font-semibold" x-text="t('navHome')">Home</span>
         </button>
 
         <!-- SCAN -->
-        <button @click="startScan()" class="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl bg-yellow-DEFAULT text-ink shadow-md transition -mt-3 border-2 border-white scale-105">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
-          </svg>
-          <span class="text-[10px] font-extrabold" x-text="t('navScan')">Scan</span>
+        <button @click="startScan()" class="flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition"
+          :class="view==='scan' ? 'text-amber-600 font-bold' : 'text-ink/40 hover:text-ink'">
+          <i data-lucide="scan-line" class="w-5 h-5"></i>
+          <span class="text-[10px] font-semibold" x-text="t('navScan')">Scan</span>
         </button>
 
         <!-- HISTORY (WORKER) / BADGES (OFFICER) -->
-        <button x-show="role==='worker'" @click="view='history'" class="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition"
-          :class="view==='history' ? 'text-ink font-bold scale-105' : 'text-ink/40 hover:text-ink'">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-          </svg>
-          <span class="text-[10px]" x-text="t('navHistory')">History</span>
+        <button x-show="role==='worker'" @click="view='history'; $nextTick(() => renderCharts())" class="flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition"
+          :class="view==='history' ? 'text-amber-600 font-bold' : 'text-ink/40 hover:text-ink'">
+          <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+          <span class="text-[10px] font-semibold" x-text="t('navHistory')">History</span>
         </button>
 
-        <button x-show="role==='officer'" @click="view='badges'" class="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition"
-          :class="view==='badges' ? 'text-ink font-bold scale-105' : 'text-ink/40 hover:text-ink'">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-          </svg>
-          <span class="text-[10px]" x-text="t('navBadges')">Badges</span>
+        <button x-show="role==='officer'" @click="view='badges'" class="flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition"
+          :class="view==='badges' ? 'text-amber-600 font-bold' : 'text-ink/40 hover:text-ink'">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+          <span class="text-[10px] font-semibold" x-text="t('navBadges')">Badges</span>
         </button>
 
         <!-- ALERTS -->
-        <button @click="view='alerts'" class="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition relative"
-          :class="view==='alerts' ? 'text-ink font-bold scale-105' : 'text-ink/40 hover:text-ink'">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-          </svg>
-          <span class="text-[10px]" x-text="t('navAlerts')">Alerts</span>
-          <span x-show="alerts.filter(a=>!a.acknowledged).length > 0" class="absolute top-1 right-3.5 w-2 h-2 rounded-full bg-bad"></span>
+        <button @click="view='alerts'" class="flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition relative"
+          :class="view==='alerts' ? 'text-amber-600 font-bold' : 'text-ink/40 hover:text-ink'">
+          <i data-lucide="bell" class="w-5 h-5"></i>
+          <span class="text-[10px] font-semibold" x-text="t('navAlerts')">Alerts</span>
+          <span x-show="alerts.filter(a=>!a.acknowledged).length > 0" class="absolute top-1 right-[28%] w-2 h-2 rounded-full bg-bad"></span>
         </button>
 
       </nav>

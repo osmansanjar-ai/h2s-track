@@ -95,6 +95,7 @@ document.addEventListener('alpine:init', () => {
     scanValidationError: '',
     rejectionModal: { active: false, code: '', reason: '' },
     qrModal: { active: false, badgeId: 'H2S-001', batchId: 'H2S-2026-001' },
+    healthAlertModal: { active: false, dose: 0, status: '', severity: '' },
     verificationChecklist: { substrate: false, qr: false, sensor: false, refScale: false, validity: false, verified: false },
 
     // Current Scan Result State (null for fresh accounts with 0 scans)
@@ -607,6 +608,15 @@ document.addEventListener('alpine:init', () => {
             calibration: doseResult.curve
           };
 
+          if (doseResult.dose > 20.0) {
+            this.healthAlertModal = {
+              active: true,
+              dose: doseResult.dose,
+              status: doseResult.status,
+              severity: doseResult.dose >= 180 ? 'EXTREME HAZARD' : 'ACTION LEVEL EXCEEDED'
+            };
+          }
+
           setTimeout(() => {
             this.stopCamera();
             this.view = 'result';
@@ -653,8 +663,15 @@ document.addEventListener('alpine:init', () => {
     },
 
     renderCharts() {
-      const labels = [...this.history].map(h => h.date).reverse();
-      const data = [...this.history].map(h => h.dose).reverse();
+      let filtered = [...this.filteredHistory];
+      if (this.rangeFilter === 'Weekly') {
+        filtered = filtered.slice(0, 7);
+      } else if (this.rangeFilter === 'Monthly') {
+        filtered = filtered.slice(0, 30);
+      }
+
+      const labels = filtered.map(h => h.date).reverse();
+      const data = filtered.map(h => h.dose).reverse();
 
       ['historyChart', 'officerChart'].forEach(id => {
         const el = document.getElementById(id);
@@ -667,19 +684,26 @@ document.addEventListener('alpine:init', () => {
           data.push(0);
         }
 
+        const ctx = el.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+        gradient.addColorStop(0, 'rgba(245, 158, 11, 0.35)');
+        gradient.addColorStop(1, 'rgba(245, 158, 11, 0.01)');
+
         el._chart = new Chart(el, {
           type: 'line',
           data: {
             labels,
             datasets: [{
               data,
-              borderColor: '#8A5A2A',
-              backgroundColor: 'rgba(138,90,42,0.08)',
+              borderColor: '#F59E0B',
+              backgroundColor: gradient,
               fill: true,
               tension: 0.35,
-              pointRadius: 4,
-              pointBackgroundColor: '#8A5A2A',
-              borderWidth: 2
+              pointRadius: 5,
+              pointBackgroundColor: '#B45309',
+              pointBorderColor: '#FFFFFF',
+              pointBorderWidth: 2,
+              borderWidth: 2.5
             }]
           },
           options: {
@@ -690,14 +714,14 @@ document.addEventListener('alpine:init', () => {
             },
             scales: {
               y: {
-                grid: { color: '#EFE3D0' },
-                ticks: { color: '#8A8A8E', font: { size: 10 } },
+                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                ticks: { color: '#64748B', font: { size: 10, weight: '600' } },
                 suggestedMin: 0,
-                suggestedMax: 40
+                suggestedMax: 50
               },
               x: {
                 grid: { display: false },
-                ticks: { color: '#8A8A8E', font: { size: 10 } }
+                ticks: { color: '#64748B', font: { size: 10, weight: '600' } }
               }
             }
           }
