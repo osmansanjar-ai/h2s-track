@@ -207,17 +207,17 @@ export class ColorimetryEngine {
     // Isolate Chemical Sensor Patch Bounds
     let startX, endX, startY, endY;
     if (hasQrCode) {
-      // Full graphic strip: Chemical patch is strictly located between 27% and 48% of sticker width
-      startX = targetMinX + Math.floor(boxW * 0.27);
-      endX = targetMinX + Math.floor(boxW * 0.48);
-      startY = targetMinY + Math.floor(boxH * 0.15);
-      endY = targetMinY + Math.floor(boxH * 0.85);
+      // Full graphic strip: Chemical patch is strictly located between 30% and 50% of sticker width
+      startX = targetMinX + Math.floor(boxW * 0.30);
+      endX = targetMinX + Math.floor(boxW * 0.50);
+      startY = targetMinY + Math.floor(boxH * 0.20);
+      endY = targetMinY + Math.floor(boxH * 0.80);
     } else {
       // Close-up wrist photo: Chemical patch is centered between 25% and 75% of sticker width
       startX = targetMinX + Math.floor(boxW * 0.25);
       endX = targetMinX + Math.floor(boxW * 0.75);
-      startY = targetMinY + Math.floor(boxH * 0.15);
-      endY = targetMinY + Math.floor(boxH * 0.85);
+      startY = targetMinY + Math.floor(boxH * 0.20);
+      endY = targetMinY + Math.floor(boxH * 0.80);
     }
 
     let totalR = 0, totalG = 0, totalB = 0, count = 0;
@@ -234,14 +234,14 @@ export class ColorimetryEngine {
         const b = data[idx+2];
         const luma = (r + g + b) / 3;
 
-        // Filter out bright white paper backing
-        const isWhite = (r > 190 && g > 185 && b > 170 && (Math.max(r, g, b) - Math.min(r, g, b)) < 35);
-        // Filter out yellow silicone
-        const isYellow = (r > 130 && g > 110 && (g - b) > 55);
-        // Filter out dark outline borders
-        const isDark = (luma < 45);
+        // Filter out pure bright white paper backing (r,g,b > 242)
+        const isWhitePaper = (r > 242 && g > 242 && b > 240 && (Math.max(r, g, b) - Math.min(r, g, b)) < 15);
+        // Filter out yellow silicone substrate
+        const isYellowSilicone = (r > 160 && g > 140 && (g - b) > 45 && r > b + 50);
+        // Filter out dark outline borders & QR pixels
+        const isDarkOutline = (luma < 40);
 
-        if (!isWhite && !isYellow && !isDark) {
+        if (!isWhitePaper && !isYellowSilicone && !isDarkOutline) {
           totalR += r;
           totalG += g;
           totalB += b;
