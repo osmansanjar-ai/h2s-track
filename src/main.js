@@ -498,13 +498,22 @@ document.addEventListener('alpine:init', () => {
           this.uploadedPhotoName = file.name || 'Wristband Photo';
           this.scanValidationError = '';
 
+          // Create isolated dedicated canvas for uploaded image (never overwritten by simulation)
+          const uploadCanvas = document.createElement('canvas');
+          uploadCanvas.width = img.naturalWidth || img.width || 600;
+          uploadCanvas.height = img.naturalHeight || img.height || 300;
+          const uCtx = uploadCanvas.getContext('2d');
+          uCtx.drawImage(img, 0, 0, uploadCanvas.width, uploadCanvas.height);
+          this._uploadedCanvas = uploadCanvas;
+
+          // Render preview to UI canvas
           const canvas = document.getElementById('simulatedBadgeCanvas');
           if (canvas) {
-            canvas.width = img.naturalWidth || img.width || 600;
-            canvas.height = img.naturalHeight || img.height || 300;
+            canvas.width = uploadCanvas.width;
+            canvas.height = uploadCanvas.height;
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(uploadCanvas, 0, 0, canvas.width, canvas.height);
           }
         };
         img.src = e.target.result;
@@ -513,10 +522,11 @@ document.addEventListener('alpine:init', () => {
     },
 
     renderSimulatedBadge() {
+      if (this.scanSource !== 'simulation') return; // NEVER overwrite uploaded image canvas!
       const canvas = document.getElementById('simulatedBadgeCanvas');
-      if (canvas && this.scanSource === 'simulation') {
+      if (canvas) {
         const badgeId = this.currentUser ? 'H2S-' + (this.currentUser.workerId || '001') : 'H2S-001';
-        SimulatedBadge.drawBadge(canvas, parseFloat(this.simulatedDose), badgeId, 'H2S-2026-001');
+        SimulatedBadge.drawBadge(canvas, parseFloat(this.simulatedDose), badgeId, '202609-2701');
       }
     },
 
@@ -543,7 +553,9 @@ document.addEventListener('alpine:init', () => {
 
           let canvasToScan = null;
 
-          if (this.scanSource === 'simulation' || this.scanSource === 'upload') {
+          if (this.scanSource === 'upload') {
+            canvasToScan = this._uploadedCanvas || document.getElementById('simulatedBadgeCanvas');
+          } else if (this.scanSource === 'simulation') {
             canvasToScan = document.getElementById('simulatedBadgeCanvas');
           } else if (this.scanSource === 'camera') {
             const video = document.getElementById('cameraVideo');

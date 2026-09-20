@@ -109,6 +109,19 @@
       "site": "Panvel Gas Terminal",
       "unit": "Operations",
       "createdAt": "2026-09-11T18:12:18.712Z"
+    },
+    {
+      "id": "USR-7238",
+      "workerId": "W-801",
+      "name": "lololo",
+      "email": "lolo@g.com",
+      "passwordHash": "$2a$10$daHoPCfMG83JiJMCLv/wtOFY9yyJIAEhDXmQQ0pfnNWhltpUkYwkK",
+      "role": "worker",
+      "company": "Independent",
+      "companyStatus": "Approved",
+      "site": "Personal Workspace",
+      "unit": "Operations",
+      "createdAt": "2026-09-20T18:12:07.076Z"
     }
   ],
   "batches": [
@@ -181,6 +194,30 @@
     }
   ],
   "scans": [
+    {
+      "id": "SCN-6717",
+      "date": "20 Sep 2026",
+      "isoDate": "2026-09-20",
+      "time": "23:41",
+      "shift": "08:00–16:00",
+      "workerId": "USR-027",
+      "workerName": "Ramesh Kadam",
+      "badgeId": "H2S-W-027",
+      "batchId": "H2S-2026-001",
+      "dose": 24.1,
+      "uncertainty": 1.4,
+      "status": "Action Level Reached",
+      "quality": "Good",
+      "rgb": {
+        "r": 213,
+        "g": 221,
+        "b": 200
+      },
+      "deltaE": 10.83,
+      "calibration": "XGBoost Regressor (MDPI Calibrated - Retrained)",
+      "userId": "USR-027",
+      "createdAt": "2026-09-20T18:11:15.589Z"
+    },
     {
       "id": "SCN-6813",
       "date": "20 Sep 2026",
@@ -719,6 +756,15 @@
     }
   ],
   "alerts": [
+    {
+      "id": "ALT-261",
+      "title": "Elevated dose logged (24.1 ppm·h)",
+      "detail": "Ramesh Kadam · Badge H2S-W-027 logged elevated exposure",
+      "sev": "Critical",
+      "time": "Just now",
+      "workerId": "USR-027",
+      "acknowledged": false
+    },
     {
       "id": "ALT-631",
       "title": "Elevated dose logged (157.6 ppm·h)",
