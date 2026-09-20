@@ -18,31 +18,31 @@ export class SimulatedBadge {
     ctx.strokeStyle = '#D9A700';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.roundRect(8, 8, width - 16, height - 16, 24);
+    ctx.roundRect(6, 6, width - 12, height - 12, 22);
     ctx.fill();
     ctx.stroke();
 
     // Inner White Sticker Label Base
-    const plateX = width * 0.05;
-    const plateY = height * 0.12;
-    const plateW = width * 0.90;
-    const plateH = height * 0.76;
+    const plateX = width * 0.04;
+    const plateY = height * 0.10;
+    const plateW = width * 0.92;
+    const plateH = height * 0.80;
 
     ctx.fillStyle = '#FFFFFF';
     ctx.strokeStyle = '#1C1E21';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(plateX, plateY, plateW, plateH, 12);
+    ctx.roundRect(plateX, plateY, plateW, plateH, 10);
     ctx.fill();
     ctx.stroke();
 
     const topTextY = plateY + 14;
 
     // --------------------------------------------------
-    // COMPONENT 1: WORKER ID / QR CODE (Left: 4% to 26%)
+    // COMPONENT 1: WORKER ID / QR CODE (Left: 3% to 24%)
     // --------------------------------------------------
     const qrSize = Math.floor(plateH * 0.52);
-    const qrX = plateX + Math.floor(plateW * 0.04);
+    const qrX = plateX + Math.floor(plateW * 0.03);
     const qrY = plateY + 22;
 
     ctx.fillStyle = '#1C1E21';
@@ -59,19 +59,19 @@ export class SimulatedBadge {
     ctx.fillRect(qrX + qrSize - 9, qrY + 5, 4, 4);
     ctx.fillRect(qrX + 5, qrY + qrSize - 9, 4, 4);
 
-    ctx.fillStyle = '#1C1E21';
-    ctx.font = '600 8px Inter, sans-serif';
-    ctx.fillText('Worker ID / QR', qrX - 2, topTextY);
+    ctx.fillStyle = '#1E293B';
+    ctx.font = '600 7.5px Inter, sans-serif';
+    ctx.fillText('Worker ID / QR', qrX, topTextY);
 
     // Printed Expiry Date Below QR
-    ctx.fillStyle = '#2B303A';
-    ctx.font = '700 7.5px Inter, monospace';
-    ctx.fillText('EXP: 2028-12-31', qrX - 2, qrY + qrSize + 11);
+    ctx.fillStyle = '#0F172A';
+    ctx.font = '700 7px Inter, monospace';
+    ctx.fillText('EXP: 2028-12-31', qrX, qrY + qrSize + 11);
 
     // --------------------------------------------------
-    // COMPONENT 2: REACTIVE WINDOW (Cu-Acetate Strip) (30% to 50%)
+    // COMPONENT 2: REACTIVE WINDOW (Cu-Acetate Strip) (28% to 48%)
     // --------------------------------------------------
-    const patchX = plateX + Math.floor(plateW * 0.30);
+    const patchX = plateX + Math.floor(plateW * 0.28);
     const patchW = Math.floor(plateW * 0.20);
     const patchH = Math.floor(plateH * 0.54);
     const patchY = plateY + 22;
@@ -80,28 +80,35 @@ export class SimulatedBadge {
     const sensorHex = ColorimetryEngine.rgbToHex(sensorRgb);
 
     ctx.fillStyle = sensorHex;
-    ctx.strokeStyle = '#3A3F47';
+    ctx.strokeStyle = '#334155';
     ctx.lineWidth = 1.2;
-    ctx.fillRect(patchX, patchY, patchW, patchH);
-    ctx.strokeRect(patchX, patchY, patchW, patchH);
+    ctx.beginPath();
+    ctx.roundRect(patchX, patchY, patchW, patchH, 3);
+    ctx.fill();
+    ctx.stroke();
 
-    ctx.fillStyle = '#1C1E21';
-    ctx.font = '600 8px Inter, sans-serif';
-    ctx.fillText('Reactive Window', patchX - 2, topTextY);
+    ctx.fillStyle = '#1E293B';
+    ctx.font = '600 7.5px Inter, sans-serif';
+    ctx.fillText('Reactive Window', patchX, topTextY);
 
     // --------------------------------------------------
-    // COMPONENT 3: PRINTED REFERENCE SCALE (Calibrated Tan/Brown: 54% to 76%)
+    // COMPONENT 3: PRINTED REFERENCE SCALE (5 Calibrated Swatches: 52% to 75%)
     // --------------------------------------------------
-    const refX = plateX + Math.floor(plateW * 0.54);
-    const refW = Math.floor(plateW * 0.22);
+    const refX = plateX + Math.floor(plateW * 0.52);
+    const refW = Math.floor(plateW * 0.23);
     const refH = patchH;
     const refY = patchY;
 
     ctx.strokeStyle = '#1C1E21';
     ctx.lineWidth = 1;
 
-    // Calibrated 6-swatch tan/brown H2S dosimetry reference scale (matches scan result screen)
-    const refColors = ['#F7F0E4', '#DDC49B', '#C79F62', '#A9793F', '#8A5A2A', '#4A2E15'];
+    // 5-Step Calibrated Cu-Acetate / H2S reference scale specified by research table:
+    // 1. #E1F0E5 (Pale Mint / Cream - 0 ppm·h)
+    // 2. #B5C4AA (Light Sage Green - 60 ppm·h)
+    // 3. #8C846D (Muted Olive-Grey - 120 ppm·h)
+    // 4. #595244 (Dark Brownish-Grey - 180 ppm·h)
+    // 5. #262420 (Near-Black CuS - 240 ppm·h)
+    const refColors = ['#E1F0E5', '#B5C4AA', '#8C846D', '#595244', '#262420'];
     const stepW = refW / refColors.length;
     refColors.forEach((color, i) => {
       ctx.fillStyle = color;
@@ -109,14 +116,14 @@ export class SimulatedBadge {
       ctx.strokeRect(refX + i * stepW, refY, stepW, refH);
     });
 
-    ctx.fillStyle = '#1C1E21';
-    ctx.font = '600 8px Inter, sans-serif';
-    ctx.fillText('Reference Scale', refX - 2, topTextY);
+    ctx.fillStyle = '#1E293B';
+    ctx.font = '600 7.5px Inter, sans-serif';
+    ctx.fillText('Reference Scale', refX, topTextY);
 
     // --------------------------------------------------
-    // COMPONENT 4: EXPIRY / VALIDITY PATCH (88% to 96%)
+    // COMPONENT 4: EXPIRY / VALIDITY PATCH (80% to 96%)
     // --------------------------------------------------
-    const expiryRadius = Math.floor(patchH * 0.38);
+    const expiryRadius = Math.floor(patchH * 0.35);
     const expiryX = plateX + Math.floor(plateW * 0.88);
     const expiryY = patchY + Math.floor(patchH / 2);
 
@@ -135,13 +142,13 @@ export class SimulatedBadge {
     ctx.arc(expiryX, expiryY, expiryRadius - 2, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#1C1E21';
-    ctx.font = '600 8px Inter, sans-serif';
+    ctx.fillStyle = '#1E293B';
+    ctx.font = '600 7.5px Inter, sans-serif';
     ctx.fillText('Expiry Patch', expiryX - expiryRadius - 2, topTextY);
 
     // Footer label
-    ctx.fillStyle = 'rgba(28, 30, 33, 0.75)';
-    ctx.font = '600 8px Inter, sans-serif';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.font = '600 7.5px Inter, sans-serif';
     ctx.fillText(`${badgeId} · BATCH ${batchId} · EXP: 2028-12-31`, plateX + 10, plateY + plateH + 11);
   }
 }
