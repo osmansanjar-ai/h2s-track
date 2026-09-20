@@ -608,12 +608,12 @@ document.addEventListener('alpine:init', () => {
             calibration: doseResult.curve
           };
 
-          if (doseResult.dose > 20.0) {
+          if (doseResult.dose >= 90.0) {
             this.healthAlertModal = {
               active: true,
               dose: doseResult.dose,
               status: doseResult.status,
-              severity: doseResult.dose >= 180 ? 'EXTREME HAZARD' : 'ACTION LEVEL EXCEEDED'
+              severity: doseResult.dose >= 180 ? 'EXTREME HAZARD (240 ppm·h)' : 'CRITICAL HIGH EXPOSURE (>=90 ppm·h)'
             };
           }
 
@@ -628,21 +628,53 @@ document.addEventListener('alpine:init', () => {
     },
 
     async saveLastScan() {
-      try {
-        const authHeader = this.token ? { 'Authorization': `Bearer ${this.token}` } : {};
-        const res = await fetch('/api/scans', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...authHeader },
-          body: JSON.stringify(this.lastScanResult)
-        });
-        if (res.ok) {
-          await this.refreshData();
+      if (this.lastScanResult) {
+        // Optimistically add to client history
+        this.history.unshift({ ...this.lastScanResult });
+
+        // If dose >= 90 ppm·h, create & prepend alert immediately
+        if (this.lastScanResult.dose >= 90) {
+          const userName = this.currentUser ? this.currentUser.name : 'Worker';
+          const userId = this.currentUser ? this.currentUser.id : 'USR-GUEST';
+          const userCompany = this.currentUser ? this.currentUser.company : '';
+
+          const newAlert = {
+            id: 'ALT-' + Math.floor(100 + Math.random() * 900),
+            title: `Critical High Exposure Detected (${this.lastScanResult.dose} ppm·h)`,
+            detail: `${userName} · Badge ${this.lastScanResult.badgeId || 'H2S-001'} logged critical exposure level`,
+            sev: 'Critical',
+            time: 'Just now',
+            userId: userId,
+            workerId: userId,
+            workerName: userName,
+            company: userCompany,
+            acknowledged: false,
+            createdAt: new Date().toISOString()
+          };
+
+          this.alerts.unshift(newAlert);
         }
-      } catch (err) {
-        console.warn('Saving scan to backend failed', err);
+
+        try {
+          const authHeader = this.token ? { 'Authorization': `Bearer ${this.token}` } : {};
+          const res = await fetch('/api/scans', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeader },
+            body: JSON.stringify(this.lastScanResult)
+          });
+          if (res.ok) {
+            await this.refreshData();
+          }
+        } catch (err) {
+          console.warn('Saving scan to backend failed', err);
+        }
       }
 
       this.view = 'home';
+      this.$nextTick(() => {
+        this.renderIcons();
+        this.renderCharts();
+      });
     },
 
     exportCSV() {

@@ -1316,34 +1316,44 @@
         <!-- HOME -->
         <button @click="view='home'" class="flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition"
           :class="view==='home' ? 'text-amber-600 font-bold' : 'text-ink/40 hover:text-ink'">
-          <i data-lucide="home" class="w-5 h-5"></i>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 00-1 1m-6 0h6"/>
+          </svg>
           <span class="text-[10px] font-semibold" x-text="t('navHome')">Home</span>
         </button>
 
         <!-- SCAN -->
         <button @click="startScan()" class="flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition"
           :class="view==='scan' ? 'text-amber-600 font-bold' : 'text-ink/40 hover:text-ink'">
-          <i data-lucide="scan-line" class="w-5 h-5"></i>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+          </svg>
           <span class="text-[10px] font-semibold" x-text="t('navScan')">Scan</span>
         </button>
 
         <!-- HISTORY (WORKER) / BADGES (OFFICER) -->
         <button x-show="role==='worker'" @click="view='history'; $nextTick(() => renderCharts())" class="flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition"
           :class="view==='history' ? 'text-amber-600 font-bold' : 'text-ink/40 hover:text-ink'">
-          <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
           <span class="text-[10px] font-semibold" x-text="t('navHistory')">History</span>
         </button>
 
         <button x-show="role==='officer'" @click="view='badges'" class="flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition"
           :class="view==='badges' ? 'text-amber-600 font-bold' : 'text-ink/40 hover:text-ink'">
-          <i data-lucide="shield-check" class="w-5 h-5"></i>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
           <span class="text-[10px] font-semibold" x-text="t('navBadges')">Badges</span>
         </button>
 
         <!-- ALERTS -->
         <button @click="view='alerts'" class="flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition relative"
           :class="view==='alerts' ? 'text-amber-600 font-bold' : 'text-ink/40 hover:text-ink'">
-          <i data-lucide="bell" class="w-5 h-5"></i>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
           <span class="text-[10px] font-semibold" x-text="t('navAlerts')">Alerts</span>
           <span x-show="alerts.filter(a=>!a.acknowledged).length > 0" class="absolute top-1 right-[28%] w-2 h-2 rounded-full bg-bad"></span>
         </button>

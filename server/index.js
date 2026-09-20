@@ -222,16 +222,20 @@ app.post('/api/scans', (req, res) => {
 
     db.addScan(fullScanRecord);
 
-    // Trigger critical exposure alert if threshold exceeded
-    if (fullScanRecord.dose > 20) {
+    // Trigger critical exposure alert ONLY if dose >= 90 ppm·h
+    if (fullScanRecord.dose >= 90) {
       db.addAlert({
         id: 'ALT-' + Math.floor(100 + Math.random() * 900),
-        title: `Elevated dose logged (${fullScanRecord.dose} ppm·h)`,
-        detail: `${userName} · Badge ${fullScanRecord.badgeId} logged elevated exposure`,
+        title: `Critical High Exposure Detected (${fullScanRecord.dose} ppm·h)`,
+        detail: `${userName} · Badge ${fullScanRecord.badgeId || 'H2S-001'} logged critical exposure level`,
         sev: 'Critical',
         time: 'Just now',
+        userId: userId,
         workerId: userId,
-        acknowledged: false
+        workerName: userName,
+        company: req.user ? req.user.company : (scanData.company || ''),
+        acknowledged: false,
+        createdAt: new Date().toISOString()
       });
     }
 
