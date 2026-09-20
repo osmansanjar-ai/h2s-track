@@ -182,6 +182,30 @@
   ],
   "scans": [
     {
+      "id": "SCN-6813",
+      "date": "20 Sep 2026",
+      "isoDate": "2026-09-20",
+      "time": "23:29",
+      "shift": "08:00–16:00",
+      "workerId": "USR-999",
+      "workerName": "Dr. V. Sharma",
+      "badgeId": "H2S-OFFICER-01",
+      "batchId": "H2S-2026-001",
+      "dose": 157.6,
+      "uncertainty": 1.3,
+      "status": "Critical Exposure",
+      "quality": "Good",
+      "rgb": {
+        "r": 110,
+        "g": 97,
+        "b": 87
+      },
+      "deltaE": 53.05,
+      "calibration": "XGBoost Regressor (MDPI Molecules 2023 Calibrated)",
+      "userId": "USR-999",
+      "createdAt": "2026-09-20T17:59:59.247Z"
+    },
+    {
       "id": "SCN-3557",
       "date": "20 Sep 2026",
       "isoDate": "2026-09-20",
@@ -695,6 +719,15 @@
     }
   ],
   "alerts": [
+    {
+      "id": "ALT-631",
+      "title": "Elevated dose logged (157.6 ppm·h)",
+      "detail": "Dr. V. Sharma · Badge H2S-OFFICER-01 logged elevated exposure",
+      "sev": "Critical",
+      "time": "Just now",
+      "workerId": "USR-999",
+      "acknowledged": false
+    },
     {
       "id": "ALT-523",
       "title": "Elevated dose logged (24.1 ppm·h)",

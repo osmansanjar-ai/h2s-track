@@ -97,6 +97,61 @@ export class ColorimetryEngine {
   }
 
   /**
+   * Detect 4-Corner ArUco Alignment Markers surrounding the central reactive patch window
+   * Returns count of detected corner markers (0 to 4) and boolean isV2Badge
+   */
+  static detectArUcoCornerFiducials(data, width, height, targetMinX, targetMinY, boxW, boxH) {
+    // 4 Corner Locations relative to sticker box (Top-Left, Top-Right, Bottom-Left, Bottom-Right)
+    const corners = [
+      { x: targetMinX + Math.floor(boxW * 0.30), y: targetMinY + Math.floor(boxH * 0.16) }, // Top-Left
+      { x: targetMinX + Math.floor(boxW * 0.55), y: targetMinY + Math.floor(boxH * 0.16) }, // Top-Right
+      { x: targetMinX + Math.floor(boxW * 0.30), y: targetMinY + Math.floor(boxH * 0.84) }, // Bottom-Left
+      { x: targetMinX + Math.floor(boxW * 0.55), y: targetMinY + Math.floor(boxH * 0.84) }  // Bottom-Right
+    ];
+
+    let detectedCount = 0;
+    const searchRadius = Math.max(3, Math.floor(Math.min(boxW, boxH) / 25));
+
+    corners.forEach(corner => {
+      let hasBlackInk = false;
+      let hasWhiteSpace = false;
+      let minLuma = 255;
+      let maxLuma = 0;
+
+      for (let dy = -searchRadius; dy <= searchRadius; dy++) {
+        for (let dx = -searchRadius; dx <= searchRadius; dx++) {
+          const px = corner.x + dx;
+          const py = corner.y + dy;
+
+          if (px < 0 || px >= width || py < 0 || py >= height) continue;
+
+          const idx = (py * width + px) * 4;
+          const r = data[idx];
+          const g = data[idx+1];
+          const b = data[idx+2];
+          const luma = (r + g + b) / 3;
+
+          if (luma < minLuma) minLuma = luma;
+          if (luma > maxLuma) maxLuma = luma;
+
+          if (luma < 50) hasBlackInk = true;
+          if (luma > 180) hasWhiteSpace = true;
+        }
+      }
+
+      // An authentic ArUco corner fiducial target has high local contrast (black & white in 10px radius)
+      if (hasBlackInk && hasWhiteSpace && (maxLuma - minLuma) > 120) {
+        detectedCount++;
+      }
+    });
+
+    return {
+      count: detectedCount,
+      isV2Badge: detectedCount >= 2 // Requires at least 2 corner fiducial markers detected
+    };
+  }
+
+  /**
    * 2-Pass Computer Vision Wristband & Chemical Sensor Patch Detector
    * Pass 1: Scans image to locate yellow wristband substrate & white label (works under all lighting conditions, indoor shadows, and flat strips).
    * Pass 2: Samples the reactive chemical sensor patch inside the white label, filtering out skin, yellow silicone, pure white backing, and dark QR text.
@@ -184,7 +239,10 @@ export class ColorimetryEngine {
     const boxW = Math.max(10, targetMaxX - targetMinX);
     const boxH = Math.max(10, targetMaxY - targetMinY);
 
-    // Step 3: Check for QR Code presence on left 22% of sticker box and Reference Scale on right side
+    // Step 3: 4-Corner ArUco Fiducial Alignment Marker Detection
+    const arucoResult = this.detectArUcoCornerFiducials(data, width, height, targetMinX, targetMinY, boxW, boxH);
+
+    // Step 4: Check for QR Code presence on left 22% of sticker box and Reference Scale on right side
     let qrDarkCount = 0;
     const left22End = targetMinX + Math.floor(boxW * 0.22);
     const checkStep = Math.max(1, Math.floor(Math.min(boxW, boxH) / 40));
@@ -202,34 +260,15 @@ export class ColorimetryEngine {
       }
     }
 
-    // Step 4: Check for Reference Scale presence on right side (55% to 75% of box)
-    let refScaleDarkCount = 0;
-    const rightRefStart = targetMinX + Math.floor(boxW * 0.55);
-    const rightRefEnd = targetMinX + Math.floor(boxW * 0.75);
-
-    for (let y = targetMinY; y < targetMaxY; y += checkStep) {
-      for (let x = rightRefStart; x < rightRefEnd; x += checkStep) {
-        if (x < 0 || x >= width || y < 0 || y >= height) continue;
-        const idx = (y * width + x) * 4;
-        const r = data[idx];
-        const g = data[idx+1];
-        const b = data[idx+2];
-        const luma = (r + g + b) / 3;
-        if (luma < 120) { // Darker swatches or swatch borders on reference scale
-          refScaleDarkCount++;
-        }
-      }
-    }
-
     const hasQrCode = qrDarkCount >= 8;
-    const hasRefScale = refScaleDarkCount >= 6;
 
-    // REJECTION RULE 2: Reject Legacy / Old / Unauthenticated Badge Designs
-    // If the image lacks the H2S-Track V2 QR code OR reference calibration scale, block scanning!
-    if (!hasQrCode && !hasRefScale) {
+    // MANDATORY STRICT REJECTION RULE:
+    // Any badge lacking the 4 ArUco Corner Fiducial Alignment Markers OR QR code IS AN OLD / LEGACY BADGE.
+    // IT MUST BE REJECTED IMMEDIATELY! NO READINGS ALLOWED!
+    if (!arucoResult.isV2Badge || !hasQrCode) {
       return {
         bandDetected: false,
-        reason: 'Legacy / Unauthenticated badge design detected (Missing QR code & calibration reference scale). Please scan authentic H2S-Track V2 badge.'
+        reason: 'REJECTED: Missing 4-Corner ArUco Alignment Markers or QR code. Legacy / Unauthenticated badge design detected. Please use authentic H2S-Track V2 badge.'
       };
     }
 
