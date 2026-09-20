@@ -56,7 +56,7 @@ const SEED_DATA = {
     {
       batchId: 'H2S-2026-001',
       mfgDate: '2026-01-15',
-      expiryDate: '2027-12-31',
+      expiryDate: '2028-12-31',
       curve: 'C17',
       coeffA: 0.82,
       coeffB: 1.45,
@@ -67,7 +67,7 @@ const SEED_DATA = {
     {
       batchId: 'H2S-2026-002',
       mfgDate: '2026-02-01',
-      expiryDate: '2027-12-31',
+      expiryDate: '2028-12-31',
       curve: 'C18',
       coeffA: 0.88,
       coeffB: 1.40,

@@ -103,7 +103,7 @@ export class QRVerificationService {
       batchConfig: foundBatch || {
         batchId: 'H2S-2026-001',
         mfgDate: '2026-01-15',
-        expiryDate: '2026-07-15',
+        expiryDate: '2028-12-31',
         curve: 'C17'
       }
     };

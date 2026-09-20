@@ -61,6 +61,11 @@ export class SimulatedBadge {
     ctx.font = '600 8px Inter, sans-serif';
     ctx.fillText('Worker ID / QR', qrX - 2, qrY - 5);
 
+    // Printed Expiry Date Below QR
+    ctx.fillStyle = '#2B303A';
+    ctx.font = '700 8px Inter, monospace';
+    ctx.fillText('EXP: 2028-12-31', qrX - 2, qrY + qrSize + 11);
+
     // --------------------------------------------------
     // COMPONENT 2: REACTIVE WINDOW (Copper-Acetate Strip)
     // --------------------------------------------------
@@ -133,8 +138,8 @@ export class SimulatedBadge {
     ctx.fillText('Expiry / validity patch', expiryX - expiryRadius - 4, patchY - 5);
 
     // Footer label
-    ctx.fillStyle = 'rgba(28, 30, 33, 0.5)';
-    ctx.font = '500 8px Inter, sans-serif';
-    ctx.fillText(`${badgeId} · BATCH ${batchId}`, plateX + 12, plateY + plateH + 11);
+    ctx.fillStyle = 'rgba(28, 30, 33, 0.7)';
+    ctx.font = '600 8px Inter, sans-serif';
+    ctx.fillText(`${badgeId} · BATCH ${batchId} · EXP: 2028-12-31`, plateX + 12, plateY + plateH + 11);
   }
 }
