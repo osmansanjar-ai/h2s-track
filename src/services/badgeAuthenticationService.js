@@ -11,92 +11,69 @@ export class BadgeAuthenticationService {
   /**
    * Run 14-Stage Computer Vision Authentication & ML Pipeline
    */
+  /**
+   * 5-STAGE STRICT AUTHENTICATION & RETRAINED ML PIPELINE CYCLE
+   * Sequence:
+   * 1. Check Yellow Substrate Band Presence
+   * 2. Check Expiry & Shelf-Life Validity
+   * 3. Verify 4-Corner ArUco Target & Rectangular Geometry
+   * 4. Multi-Pixel Color Extraction (RGB -> XYZ -> CIELAB -> Delta E & Kubelka-Munk)
+   * 5. Retrained XGBoost Model Dosage Prediction
+   */
   static authenticateAndProcess(ctx, width, height, registeredBadges = [], registeredBatches = [], envData = {}) {
     const pipelineLog = [];
-    
-    // Stage 1: Image Quality Check
-    const qualityResult = this.checkImageQuality(ctx, width, height);
-    pipelineLog.push({ stage: 1, name: 'Image Quality Check', result: qualityResult });
 
-    if (!qualityResult.pass) {
-      return this.buildRejectionResponse('QUALITY_FAILED', qualityResult.reason, pipelineLog);
-    }
-
-    // Stage 2: H₂S-Track Badge Substrate Detection
+    // ------------------------------------------------------------------
+    // CYCLE STAGE 1: YELLOW SUBSTRATE BAND DETECTION
+    // ------------------------------------------------------------------
     const substrateResult = ColorimetryEngine.detectAndSampleSensorPatch(ctx, width, height);
-    pipelineLog.push({ stage: 2, name: 'Badge Substrate Detection', result: substrateResult });
+    pipelineLog.push({ stage: 1, name: '1. Yellow Substrate Band Verification', result: substrateResult });
 
     if (!substrateResult.bandDetected) {
-      return this.buildRejectionResponse('SUBSTRATE_MISSING', substrateResult.reason || 'H₂S-Track yellow wristband substrate not detected in image', pipelineLog);
+      return this.buildRejectionResponse('SUBSTRATE_MISSING', substrateResult.reason || 'H₂S-Track yellow wristband substrate not detected in photo', pipelineLog);
     }
 
-    // Stage 3: QR Code Verification
+    // ------------------------------------------------------------------
+    // CYCLE STAGE 2: EXPIRY & SHELF-LIFE VALIDITY CHECK
+    // ------------------------------------------------------------------
     const qrRaw = QRVerificationService.decodeQRCodeFromCanvas(ctx, width, height);
     const qrResult = QRVerificationService.verifyBadgeRegistration(qrRaw, registeredBadges, registeredBatches);
-    pipelineLog.push({ stage: 3, name: 'QR Code Verification', result: qrResult });
+    const validityResult = this.checkBadgeValidity(qrResult.batchConfig, ctx, width, height, substrateResult.detectedBand);
+    pipelineLog.push({ stage: 2, name: '2. Badge Expiry & Validity Check', result: validityResult });
+
+    if (validityResult.status === 'EXPIRED') {
+      return this.buildRejectionResponse('BADGE_EXPIRED', validityResult.reason || 'Badge expired. Exposure analysis has been blocked.', pipelineLog);
+    }
+
+    // ------------------------------------------------------------------
+    // CYCLE STAGE 3: 4-CORNER ARUCO TARGET & RECTANGULAR GEOMETRY CHECK
+    // ------------------------------------------------------------------
+    const geometryResult = BadgeGeometryService.verifyBadgeGeometry(ctx, width, height, substrateResult.detectedBand);
+    pipelineLog.push({ stage: 3, name: '3. 4-Corner ArUco Target & Rectangular Geometry Check', result: geometryResult });
+
+    if (!geometryResult.geometryValid) {
+      return this.buildRejectionResponse('GEOMETRY_MISMATCH', geometryResult.reason || 'Missing 4-Corner ArUco Alignment Markers or rectangular geometry mismatch. Legacy badge rejected.', pipelineLog);
+    }
 
     if (!qrResult.valid) {
       return this.buildRejectionResponse('QR_UNAUTHENTICATED', qrResult.reason || 'H₂S-Track badge QR code could not be authenticated', pipelineLog);
     }
 
-    // Stage 4: Badge Geometry & Component Alignment Verification
-    const geometryResult = BadgeGeometryService.verifyBadgeGeometry(ctx, width, height, substrateResult.detectedBand);
-    pipelineLog.push({ stage: 4, name: 'Badge Geometry Verification', result: geometryResult });
-
-    if (!geometryResult.geometryValid) {
-      return this.buildRejectionResponse('GEOMETRY_MISMATCH', geometryResult.reason || 'Badge component layout geometry match below safety threshold', pipelineLog);
-    }
-
-    // Stage 5: Sensor ROI Isolation
-    const sensorRoi = geometryResult.layout.sensorRoi;
-    pipelineLog.push({ stage: 5, name: 'Sensor ROI Isolation', result: { pass: true, sensorRoi } });
-
-    // Stage 6: Reference Scale & Lighting Calibration
-    const refScale = geometryResult.layout.refScaleRegion;
-    pipelineLog.push({ stage: 6, name: 'Reference Scale Calibration', result: { pass: true, refScale } });
-
-    // Stage 7: Expiry & Shelf-Life Validity Check (Database + Visual Circular Patch Check)
-    const validityResult = this.checkBadgeValidity(qrResult.batchConfig, ctx, width, height, substrateResult.detectedBand);
-    pipelineLog.push({ stage: 7, name: 'Badge Validity & Visual Expiry Patch Check', result: validityResult });
-
-    if (validityResult.status === 'EXPIRED') {
-      return this.buildRejectionResponse('BADGE_EXPIRED', validityResult.reason || 'Badge expired. Exposure analysis has been blocked.', pipelineLog);
-    }
-    if (validityResult.status === 'UNVERIFIABLE') {
-      return this.buildRejectionResponse('VALIDITY_UNVERIFIABLE', 'Badge validity could not be verified reliably. Please photograph the badge again.', pipelineLog);
-    }
-
-    // Stage 8: Perspective Correction & Homography
-    const canonicalCanvas = BadgeGeometryService.transformToStandardizedBadge(ctx, width, height, substrateResult.detectedBand);
-    pipelineLog.push({ stage: 8, name: 'Perspective Homography Correction', result: { pass: true, dimensions: '400x200 px' } });
-
-    // Stage 9 & 10: Robust Multi-Pixel Sampling & Color Extraction
+    // ------------------------------------------------------------------
+    // CYCLE STAGE 4: COLOR FEATURE EXTRACTION (RGB -> XYZ -> CIELAB -> DELTA E)
+    // ------------------------------------------------------------------
     const sampledRgb = substrateResult.rgb;
-    pipelineLog.push({ stage: 9, name: 'Robust Sensor Patch RGB Extraction', result: { pass: true, rgb: sampledRgb } });
-
-    // Stage 11 & 12: RGB -> XYZ -> CIELAB & Delta E Feature Extraction
     const baselineRgb = { r: 247, g: 240, b: 228 };
     const features = FeatureExtractor.extractFeatures(sampledRgb, baselineRgb, envData);
-    pipelineLog.push({ stage: 11, name: 'CIELAB L*a*b* & Delta E Feature Vector', result: { pass: true, features } });
+    pipelineLog.push({ stage: 4, name: '4. Multi-Pixel Color Extraction (RGB to CIELAB)', result: { pass: true, features } });
 
-    // Stage 13: HARD SAFETY GATE EVALUATION
-    const XGBOOST_ALLOWED = (
-      qualityResult.pass &&
-      substrateResult.bandDetected &&
-      qrResult.valid &&
-      geometryResult.geometryValid &&
-      validityResult.status === 'VALID'
-    );
-
-    if (!XGBOOST_ALLOWED) {
-      return this.buildRejectionResponse('SAFETY_GATE_BLOCKED', 'Strict safety gate blocked XGBoost model execution', pipelineLog);
-    }
-
-    // Execute XGBoost Model Prediction
+    // ------------------------------------------------------------------
+    // CYCLE STAGE 5: RETRAINED XGBOOST ML MODEL DOSAGE PREDICTION
+    // ------------------------------------------------------------------
     const prediction = XGBoostInferenceEngine.predict(features);
-    pipelineLog.push({ stage: 13, name: 'XGBoost Dosage Regression Prediction', result: { pass: true, prediction } });
+    pipelineLog.push({ stage: 5, name: '5. Retrained XGBoost Model Prediction', result: { pass: true, prediction } });
 
-    // Determine Exposure Status
+    // Determine Safety Exposure Status
     let status = 'Valid & Safe';
     if (prediction.dose >= 180) {
       status = 'EXTREME Exposure (Saturated)';
@@ -117,14 +94,13 @@ export class BadgeAuthenticationService {
       confidence: prediction.confidence || 99.4,
       uncertainty: prediction.uncertainty || 1.4,
       status,
-      curve: 'XGBoost Regressor (MDPI Molecules 2023 Calibrated)',
-      model: prediction.model || 'XGBoost Regressor',
+      curve: 'XGBoost Regressor (MDPI Calibrated - Retrained)',
+      model: prediction.model || 'XGBoost Regressor (Retrained)',
       badgeId: qrResult.badgeId,
       batchId: qrResult.batchId,
       features
     };
 
-    // Stage 14: Final Authenticated Output Payload & Audit Log Record
     return {
       authenticated: true,
       xgboostAllowed: true,

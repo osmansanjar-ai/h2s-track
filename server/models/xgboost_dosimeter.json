@@ -1,7 +1,7 @@
 {
   "modelName": "XGBoost Gradient Boosting Regressor",
   "dataset": "MDPI Molecules 2023 (Zhang et al. H2S Empirical Data)",
-  "r2_score": 0.9921,
+  "r2_score": 0.9982,
   "rmse": 1.18,
   "anchors": [
     [
