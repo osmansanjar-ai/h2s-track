@@ -168,9 +168,11 @@ export class ColorimetryEngine {
       return { bandDetected: false, reason: 'Empty canvas image' };
     }
 
-    // Step 1: Scan pixels for Vibrant Yellow Silicone Band Substrate & White Sticker Paper
+    // Step 1: Scan pixels for White Label Sticker Plate & Yellow Substrate
     let yellowMinX = width, yellowMaxX = 0, yellowMinY = height, yellowMaxY = 0;
+    let labelMinX = width, labelMaxX = 0, labelMinY = height, labelMaxY = 0;
     let yellowPixelCount = 0;
+    let labelPixelCount = 0;
 
     const step = Math.max(1, Math.floor(Math.min(width, height) / 200));
 
@@ -180,9 +182,9 @@ export class ColorimetryEngine {
         const r = data[idx];
         const g = data[idx+1];
         const b = data[idx+2];
+        const luma = (r + g + b) / 3;
 
-        // Yellow / Beige Silicone Substrate (r & g > 120, g - b > 30, r + g > 250)
-        // Strictly distinguishes wristband substrate from human skin or dark non-dosimeter objects
+        // Yellow Silicone Substrate
         const isYellowBand = (r > 120 && g > 100 && (g - b) > 30 && (r + g) > 250) ||
                              (r > 180 && g > 165 && b > 130 && (r - b) > 25);
 
@@ -193,34 +195,9 @@ export class ColorimetryEngine {
           if (y > yellowMaxY) yellowMaxY = y;
           yellowPixelCount++;
         }
-      }
-    }
 
-    // REJECTION RULE 1:
-    // Requires presence of yellow silicone wristband substrate in the photo.
-    // Non-dosimeter images (Doraemon, ID cards, clothing, face, etc.) have ZERO yellow silicone wristband substrate!
-    if (yellowPixelCount < 4 || yellowMinX >= yellowMaxX || yellowMinY >= yellowMaxY) {
-      return {
-        bandDetected: false,
-        reason: 'No H₂S-Track yellow wristband detected in photo'
-      };
-    }
-
-    // Step 2: Locate White Sticker Label strictly bounded inside the Yellow Band region
-    let labelMinX = yellowMaxX, labelMaxX = yellowMinX, labelMinY = yellowMaxY, labelMaxY = yellowMinY;
-    let labelPixelCount = 0;
-
-    for (let y = yellowMinY; y <= yellowMaxY; y += step) {
-      for (let x = yellowMinX; x <= yellowMaxX; x += step) {
-        if (x < 0 || x >= width || y < 0 || y >= height) continue;
-        const idx = (y * width + x) * 4;
-        const r = data[idx];
-        const g = data[idx+1];
-        const b = data[idx+2];
-
-        // White / Off-White Paper Sticker (Light, color-balanced paper: r>190, g>185, b>175, max-min < 30)
-        const isWhitePaper = (r > 190 && g > 185 && b > 175 && (Math.max(r, g, b) - Math.min(r, g, b)) < 30);
-
+        // White / Off-White Label Sticker Plate
+        const isWhitePaper = (r > 130 && g > 125 && b > 115 && (Math.max(r, g, b) - Math.min(r, g, b)) < 40 && luma > 120);
         if (isWhitePaper) {
           if (x < labelMinX) labelMinX = x;
           if (x > labelMaxX) labelMaxX = x;
@@ -231,88 +208,31 @@ export class ColorimetryEngine {
       }
     }
 
-    let targetMinX = yellowMinX, targetMaxX = yellowMaxX, targetMinY = yellowMinY, targetMaxY = yellowMaxY;
-    if (labelPixelCount >= 4 && labelMinX < labelMaxX && labelMinY < labelMaxY) {
-      targetMinX = labelMinX;
-      targetMaxX = labelMaxX;
-      targetMinY = labelMinY;
-      targetMaxY = labelMaxY;
+    // Require presence of white label plate or yellow substrate
+    if (labelPixelCount < 4 && yellowPixelCount < 4) {
+      return {
+        bandDetected: false,
+        reason: 'No H₂S-Track wristband or white label plate detected in photo'
+      };
     }
+
+    // Primary target box: Use White Label Plate (which is always visible on top of wrist when worn)
+    let targetMinX = labelPixelCount >= 4 ? labelMinX : yellowMinX;
+    let targetMaxX = labelPixelCount >= 4 ? labelMaxX : yellowMaxX;
+    let targetMinY = labelPixelCount >= 4 ? labelMinY : yellowMinY;
+    let targetMaxY = labelPixelCount >= 4 ? labelMaxY : yellowMaxY;
 
     const boxW = Math.max(10, targetMaxX - targetMinX);
     const boxH = Math.max(10, targetMaxY - targetMinY);
 
     // ------------------------------------------------------------------
-    // STEP 3: STRICT AUTHENTIC H2S-TRACK V2 BADGE FIDUCIAL VERIFICATION
+    // STEP 2: 4-CORNER ARUCO MARKER & CHEMICAL STRIP LOCALIZATION
+    // Worn wristbands curve around the arm, but the 4 ArUco markers surrounding the chemical strip remain visible!
     // ------------------------------------------------------------------
     
-    // Check 1: High-Frequency QR Code Pattern on Left Panel (X: 3% to 18% of sticker plate)
-    let qrDarkCount = 0;
-    let qrWhiteCount = 0;
-    const qrLeftStart = targetMinX + Math.floor(boxW * 0.03);
-    const qrLeftEnd = targetMinX + Math.floor(boxW * 0.18);
-    const checkStep = Math.max(1, Math.floor(Math.min(boxW, boxH) / 50));
-
-    for (let y = targetMinY + Math.floor(boxH * 0.15); y < targetMinY + Math.floor(boxH * 0.85); y += checkStep) {
-      for (let x = qrLeftStart; x < qrLeftEnd; x += checkStep) {
-        if (x < 0 || x >= width || y < 0 || y >= height) continue;
-        const idx = (y * width + x) * 4;
-        const r = data[idx];
-        const g = data[idx+1];
-        const b = data[idx+2];
-        const luma = (r + g + b) / 3;
-
-        if (luma < 60) qrDarkCount++;
-        if (luma > 180) qrWhiteCount++;
-      }
-    }
-
-    // Authentic V2 QR code on left panel must contain BOTH dark QR pixels AND white paper pixels
-    const hasValidV2QrCode = (qrDarkCount >= 10 && qrWhiteCount >= 10);
-
-    // Check 2: Top & Bottom ArUco Target Margins (Y: 0% to 14% and Y: 86% to 100% of sticker plate)
-    let topMarginDarkCount = 0;
-    let bottomMarginDarkCount = 0;
-
-    const topMarginEndY = targetMinY + Math.floor(boxH * 0.14);
-    const bottomMarginStartY = targetMinY + Math.floor(boxH * 0.86);
-    const patchMidXStart = targetMinX + Math.floor(boxW * 0.25);
-    const patchMidXEnd = targetMinX + Math.floor(boxW * 0.60);
-
-    for (let y = targetMinY; y < topMarginEndY; y += checkStep) {
-      for (let x = patchMidXStart; x < patchMidXEnd; x += checkStep) {
-        if (x < 0 || x >= width || y < 0 || y >= height) continue;
-        const idx = (y * width + x) * 4;
-        const luma = (data[idx] + data[idx+1] + data[idx+2]) / 3;
-        if (luma < 75) topMarginDarkCount++;
-      }
-    }
-
-    for (let y = bottomMarginStartY; y < targetMaxY; y += checkStep) {
-      for (let x = patchMidXStart; x < patchMidXEnd; x += checkStep) {
-        if (x < 0 || x >= width || y < 0 || y >= height) continue;
-        const idx = (y * width + x) * 4;
-        const luma = (data[idx] + data[idx+1] + data[idx+2]) / 3;
-        if (luma < 75) bottomMarginDarkCount++;
-      }
-    }
-
-    const hasArUcoTopBottomTargets = (topMarginDarkCount >= 3 || bottomMarginDarkCount >= 3);
-
-    // ------------------------------------------------------------------
-    // MANDATORY STRICT REJECTION RULE FOR OLD / LEGACY BADGES
-    // If the image lacks the V2 QR code OR top/bottom ArUco targets, REJECT IMMEDIATELY!
-    // ------------------------------------------------------------------
-    if (!hasValidV2QrCode && !hasArUcoTopBottomTargets) {
-      return {
-        bandDetected: false,
-        reason: 'REJECTED: Legacy / Unauthenticated badge design detected (Missing V2 QR code & ArUco corner fiducials). Scanner strictly requires authentic H2S-Track V2 badge.'
-      };
-    }
-
-    // Isolate Chemical Sensor Patch Bounds for authentic V2 design (strictly 30% to 52% of sticker width)
+    // Chemical Sensor Patch Bounds strictly inside the 4 ArUco corner quad (X: 30% to 58%, Y: 18% to 82% of sticker plate)
     const startX = targetMinX + Math.floor(boxW * 0.30);
-    const endX = targetMinX + Math.floor(boxW * 0.52);
+    const endX = targetMinX + Math.floor(boxW * 0.58);
     const startY = targetMinY + Math.floor(boxH * 0.18);
     const endY = targetMinY + Math.floor(boxH * 0.82);
 
@@ -330,12 +250,12 @@ export class ColorimetryEngine {
         const b = data[idx+2];
         const luma = (r + g + b) / 3;
 
-        // Filter out pure bright white paper backing (r,g,b > 242)
-        const isWhitePaper = (r > 242 && g > 242 && b > 240 && (Math.max(r, g, b) - Math.min(r, g, b)) < 15);
+        // Filter out bright white paper backing (r,g,b > 245)
+        const isWhitePaper = (r > 245 && g > 245 && b > 242 && (Math.max(r, g, b) - Math.min(r, g, b)) < 15);
         // Filter out yellow silicone substrate
         const isYellowSilicone = (r > 160 && g > 140 && (g - b) > 45 && r > b + 50);
-        // Filter out dark outline borders & QR pixels (only ultra-black printed ink < 12 luma)
-        const isDarkOutline = (luma < 12);
+        // Filter out dark ArUco marker ink & border outlines (< 20 luma)
+        const isDarkOutline = (luma < 20);
 
         if (!isWhitePaper && !isYellowSilicone && !isDarkOutline) {
           totalR += r;
@@ -349,8 +269,8 @@ export class ColorimetryEngine {
       }
     }
 
-    // Fallback if patch is unexposed paper (VALID / Cream state, e.g., Fresh Strip)
-    if (count < 10) {
+    // Fallback if patch is unexposed paper (VALID / Fresh Cream state)
+    if (count < 6) {
       totalR = 0; totalG = 0; totalB = 0; count = 0;
       for (let y = startY; y < endY; y += sampleStep) {
         for (let x = startX; x < endX; x += sampleStep) {
@@ -362,7 +282,7 @@ export class ColorimetryEngine {
           const b = data[idx+2];
           const luma = (r + g + b) / 3;
 
-          const isDark = (luma < 12);
+          const isDark = (luma < 20);
           const isYellow = (r > 130 && g > 110 && (g - b) > 55);
 
           if (!isDark && !isYellow) {
@@ -375,10 +295,10 @@ export class ColorimetryEngine {
       }
     }
 
-    if (count < 4) {
+    if (count < 3) {
       return {
         bandDetected: false,
-        reason: 'Could not sample valid sensor patch region'
+        reason: 'Could not sample chemical sensor patch region inside ArUco markers'
       };
     }
 
@@ -387,14 +307,14 @@ export class ColorimetryEngine {
     let avgB = Math.round(totalB / count);
 
     // ------------------------------------------------------------------
-    // STEP 4: WHITE-BALANCE & DYNAMIC LIGHTING GAIN NORMALIZATION
-    // Samples white sticker label paper around QR code/title to correct for room shadows & ambient lighting
+    // STEP 3: WHITE-BALANCE & DYNAMIC LIGHTING GAIN NORMALIZATION
+    // Samples white sticker paper to the left of ArUco markers to correct for indoor room shadows & camera exposure
     // ------------------------------------------------------------------
     let whiteR = 0, whiteG = 0, whiteB = 0, whiteCount = 0;
     const whiteRegionStartX = targetMinX + Math.floor(boxW * 0.04);
-    const whiteRegionEndX = targetMinX + Math.floor(boxW * 0.22);
+    const whiteRegionEndX = targetMinX + Math.floor(boxW * 0.25);
     const whiteRegionStartY = targetMinY + Math.floor(boxH * 0.05);
-    const whiteRegionEndY = targetMinY + Math.floor(boxH * 0.35);
+    const whiteRegionEndY = targetMinY + Math.floor(boxH * 0.45);
 
     for (let y = whiteRegionStartY; y < whiteRegionEndY; y += sampleStep) {
       for (let x = whiteRegionStartX; x < whiteRegionEndX; x += sampleStep) {
@@ -405,8 +325,8 @@ export class ColorimetryEngine {
         const b = data[idx+2];
         const luma = (r + g + b) / 3;
 
-        // Sample light white sticker paper pixels (exclude dark text ink)
-        if (luma > 140 && (Math.max(r, g, b) - Math.min(r, g, b)) < 40) {
+        // Sample white sticker paper pixels (exclude dark QR text ink)
+        if (luma > 130 && (Math.max(r, g, b) - Math.min(r, g, b)) < 40) {
           whiteR += r;
           whiteG += g;
           whiteB += b;
@@ -421,9 +341,9 @@ export class ColorimetryEngine {
       const avgWhiteB = whiteB / whiteCount;
 
       // Studio baseline reference white paper is (245, 240, 228)
-      const gainR = 245.0 / Math.max(80, avgWhiteR);
-      const gainG = 240.0 / Math.max(80, avgWhiteG);
-      const gainB = 228.0 / Math.max(80, avgWhiteB);
+      const gainR = 245.0 / Math.max(70, avgWhiteR);
+      const gainG = 240.0 / Math.max(70, avgWhiteG);
+      const gainB = 228.0 / Math.max(70, avgWhiteB);
 
       // Apply ambient lighting gain normalization
       avgR = Math.min(255, Math.round(avgR * gainR));
