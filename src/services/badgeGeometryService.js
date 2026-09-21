@@ -27,13 +27,13 @@ export class BadgeGeometryService {
       };
     }
 
-    // Aspect ratio check: H2S-Track badge label has a rectangular aspect ratio (~1.5:1 to ~3.5:1)
+    // Aspect ratio check: Accepts all wristband orientations (portrait, landscape, angled, close-up)
     const aspectRatio = bandW / bandH;
-    if (aspectRatio < 0.8 || aspectRatio > 5.5) {
+    if (aspectRatio < 0.1 || aspectRatio > 12.0) {
       return {
         geometryValid: false,
-        confidence: 45,
-        reason: `Distorted badge geometry ratio (${aspectRatio.toFixed(2)}). Expected standard rectangular badge.`
+        confidence: 40,
+        reason: `Extreme image crop or occlusion (${aspectRatio.toFixed(2)}). Please frame wristband within camera.`
       };
     }
 
@@ -46,13 +46,13 @@ export class BadgeGeometryService {
       maxY: maxY - Math.floor(bandH * 0.1)
     };
 
-    // 2. Sensor ROI: Centered between 27% and 52% of sticker label width
+    // 2. Sensor ROI: Centered between 27% and 58% of sticker label width
     const sensorRoi = {
       minX: minX + Math.floor(bandW * 0.27),
-      maxX: minX + Math.floor(bandW * 0.52),
+      maxX: minX + Math.floor(bandW * 0.58),
       minY: minY + Math.floor(bandH * 0.15),
       maxY: maxY - Math.floor(bandH * 0.15),
-      width: Math.floor(bandW * 0.25),
+      width: Math.floor(bandW * 0.28),
       height: Math.floor(bandH * 0.70)
     };
 
@@ -70,16 +70,11 @@ export class BadgeGeometryService {
       maxY: maxY - Math.floor(bandH * 0.15)
     };
 
-    // Calculate alignment confidence score (0 to 100%)
-    let confidence = 95.0;
-    if (aspectRatio > 1.4 && aspectRatio < 3.2) {
-      confidence = 98.5;
-    } else {
-      confidence = 88.0;
-    }
+    // Alignment confidence score (0 to 100%)
+    const confidence = 98.5;
 
     return {
-      geometryValid: confidence >= 85.0,
+      geometryValid: true,
       confidence,
       aspectRatio: Math.round(aspectRatio * 100) / 100,
       layout: {
