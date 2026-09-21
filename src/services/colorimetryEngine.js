@@ -382,9 +382,54 @@ export class ColorimetryEngine {
       };
     }
 
-    const avgR = Math.round(totalR / count);
-    const avgG = Math.round(totalG / count);
-    const avgB = Math.round(totalB / count);
+    let avgR = Math.round(totalR / count);
+    let avgG = Math.round(totalG / count);
+    let avgB = Math.round(totalB / count);
+
+    // ------------------------------------------------------------------
+    // STEP 4: WHITE-BALANCE & DYNAMIC LIGHTING GAIN NORMALIZATION
+    // Samples white sticker label paper around QR code/title to correct for room shadows & ambient lighting
+    // ------------------------------------------------------------------
+    let whiteR = 0, whiteG = 0, whiteB = 0, whiteCount = 0;
+    const whiteRegionStartX = targetMinX + Math.floor(boxW * 0.04);
+    const whiteRegionEndX = targetMinX + Math.floor(boxW * 0.22);
+    const whiteRegionStartY = targetMinY + Math.floor(boxH * 0.05);
+    const whiteRegionEndY = targetMinY + Math.floor(boxH * 0.35);
+
+    for (let y = whiteRegionStartY; y < whiteRegionEndY; y += sampleStep) {
+      for (let x = whiteRegionStartX; x < whiteRegionEndX; x += sampleStep) {
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+        const idx = (y * width + x) * 4;
+        const r = data[idx];
+        const g = data[idx+1];
+        const b = data[idx+2];
+        const luma = (r + g + b) / 3;
+
+        // Sample light white sticker paper pixels (exclude dark text ink)
+        if (luma > 140 && (Math.max(r, g, b) - Math.min(r, g, b)) < 40) {
+          whiteR += r;
+          whiteG += g;
+          whiteB += b;
+          whiteCount++;
+        }
+      }
+    }
+
+    if (whiteCount > 3) {
+      const avgWhiteR = whiteR / whiteCount;
+      const avgWhiteG = whiteG / whiteCount;
+      const avgWhiteB = whiteB / whiteCount;
+
+      // Studio baseline reference white paper is (245, 240, 228)
+      const gainR = 245.0 / Math.max(80, avgWhiteR);
+      const gainG = 240.0 / Math.max(80, avgWhiteG);
+      const gainB = 228.0 / Math.max(80, avgWhiteB);
+
+      // Apply ambient lighting gain normalization
+      avgR = Math.min(255, Math.round(avgR * gainR));
+      avgG = Math.min(255, Math.round(avgG * gainG));
+      avgB = Math.min(255, Math.round(avgB * gainB));
+    }
 
     // SPECTRUM CHECK:
     // Chemical sulfide reactions are warm beige -> brown -> black. Reject blue/green non-dosimeter objects.

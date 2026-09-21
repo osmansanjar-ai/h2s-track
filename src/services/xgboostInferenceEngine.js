@@ -16,7 +16,7 @@ export class XGBoostInferenceEngine {
     const deltaE = features.deltaE !== undefined ? features.deltaE : (features[6] || 0);
 
     // 1. Light Cream Baseline Protection (0.0 ppm·h)
-    if (L > 92 && deltaE < 3.5) {
+    if (L > 82 && deltaE < 12.0) {
       return { dose: 0.0, confidence: 99.4, uncertainty: 0.5, model: 'XGBoost Gradient Boosting Regressor (MDPI Calibrated)' };
     }
 
