@@ -1,11 +1,16 @@
 // Canvas Badge Renderer for Interactive Simulation & Camera Testing (SIH 2026 Design V2)
-// Layout: [ H2S-Track & QR ] -> [ Corner Fiducials + Reactive Window (Exposure Scale) ] -> [ Vertical Reference Bar ] -> [ Expiry & Circular Seal ]
+// Exact match to user V2 physical wristband spec (ArUco 4-point corners + Vertical Calibration Scale + Expiry Swatches)
 
 import { ColorimetryEngine } from '../services/colorimetryEngine.js';
 
 export class SimulatedBadge {
   static drawBadge(canvas, dosePpmH = 12.7, badgeId = 'H2S-001', batchId = '202609-2701', isExpired = false) {
     if (!canvas) return;
+
+    // Ensure target canvas rendering dimensions
+    canvas.width = 540;
+    canvas.height = 175;
+
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
@@ -13,120 +18,132 @@ export class SimulatedBadge {
     // Clear background
     ctx.clearRect(0, 0, width, height);
 
-    // 1. Background Yellow Silicone Substrate (Wristband)
+    // --------------------------------------------------
+    // 1. MAIN YELLOW SILICONE WRISTBAND SUBSTRATE
+    // --------------------------------------------------
+    const bandX = 14;
+    const bandY = 10;
+    const bandW = width - 28;
+    const bandH = height - 20;
+
+    // Outer Yellow Substrate Body
     ctx.fillStyle = '#FFDD40';
-    ctx.strokeStyle = '#E6C220';
-    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#E6C020';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(4, 4, width - 8, height - 8, 20);
+    ctx.roundRect(bandX, bandY, bandW, bandH, 18);
     ctx.fill();
     ctx.stroke();
 
-    // Left Tab Extension
+    // Left Rounded Tab Extension Nub
     ctx.fillStyle = '#FFDD40';
     ctx.beginPath();
-    ctx.arc(6, height / 2, 14, Math.PI * 0.5, Math.PI * 1.5);
+    ctx.arc(bandX, height / 2, 11, Math.PI * 0.5, Math.PI * 1.5);
     ctx.fill();
 
-    // 2. Left White Label Plate (H2S-Track & QR Code)
-    const plateX = width * 0.06;
-    const plateY = height * 0.12;
-    const plateW = width * 0.28;
-    const plateH = height * 0.76;
+    // --------------------------------------------------
+    // 2. LEFT WHITE LABEL PLATE (H2S-Track & QR CODE)
+    // --------------------------------------------------
+    const plateX = bandX + 14;
+    const plateY = bandY + 12;
+    const plateW = 152;
+    const plateH = bandH - 24;
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.strokeStyle = '#222222';
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = '#111111';
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.roundRect(plateX, plateY, plateW, plateH, 12);
+    ctx.roundRect(plateX, plateY, plateW, plateH, 14);
     ctx.fill();
     ctx.stroke();
 
-    // H2S-Track Header
+    // Title: "H2S-Track"
     ctx.fillStyle = '#000000';
-    ctx.font = '900 13px Inter, sans-serif';
-    ctx.fillText('H2S-Track', plateX + 10, plateY + 22);
+    ctx.font = '900 22px Inter, system-ui, -apple-system, sans-serif';
+    ctx.fillText('H2S-Track', plateX + 12, plateY + 28);
 
-    // QR Code
-    const qrSize = Math.floor(plateH * 0.44);
-    const qrX = plateX + 10;
-    const qrY = plateY + 30;
+    // QR Code Placement
+    const qrSize = 52;
+    const qrX = plateX + 12;
+    const qrY = plateY + 38;
 
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(qrX, qrY, qrSize, qrSize);
+    this.drawRealisticQrCode(ctx, qrX, qrY, qrSize);
 
-    // QR inner detail finder blocks
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(qrX + 2, qrY + 2, 7, 7);
-    ctx.fillRect(qrX + qrSize - 9, qrY + 2, 7, 7);
-    ctx.fillRect(qrX + 2, qrY + qrSize - 9, 7, 7);
-    ctx.fillRect(qrX + 9, qrY + 9, 5, 5);
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(qrX + 4, qrY + 4, 3, 3);
-    ctx.fillRect(qrX + qrSize - 7, qrY + 4, 3, 3);
-    ctx.fillRect(qrX + 4, qrY + qrSize - 7, 3, 3);
-
-    // Batch ID Text
-    ctx.fillStyle = '#444444';
-    ctx.font = '600 7px Inter, monospace';
+    // Batch ID Text (Right of QR code inside white plate)
+    ctx.fillStyle = '#333333';
+    ctx.font = '500 8.5px monospace, sans-serif';
     ctx.fillText(`H2S-Batch:${batchId}`, qrX + qrSize + 6, qrY + qrSize - 4);
 
     // --------------------------------------------------
-    // 3. CENTRAL REACTIVE SENSOR WINDOW WITH 4 CORNER FIDUCIAL MARKERS
+    // 3. CENTRAL REACTIVE SENSOR PATCH & 4 ARUCO MARKERS
     // --------------------------------------------------
-    const patchX = plateX + plateW + Math.floor(width * 0.04);
-    const patchW = Math.floor(width * 0.25);
-    const patchH = Math.floor(height * 0.68);
-    const patchY = plateY + Math.floor((plateH - patchH) / 2);
+    const patchX = plateX + plateW + 32;
+    const patchY = bandY + 16;
+    const patchW = 112;
+    const patchH = 92;
 
-    // Draw 4 Corner ArUco / Fiducial Alignment Targets (Black & White Squares)
-    const fidSize = 9;
+    // 4 Corner ArUco / Fiducial Markers (DICT_4X4_50 binary matrix grid)
+    const markerSize = 11;
     const fiducials = [
-      { x: patchX - fidSize - 2, y: patchY - fidSize - 2 },
-      { x: patchX + patchW + 2, y: patchY - fidSize - 2 },
-      { x: patchX - fidSize - 2, y: patchY + patchH + 2 },
-      { x: patchX + patchW + 2, y: patchY + patchH + 2 }
+      { x: patchX - markerSize - 3, y: patchY - markerSize - 3 }, // Top-Left
+      { x: patchX + patchW + 3,     y: patchY - markerSize - 3 }, // Top-Right
+      { x: patchX - markerSize - 3, y: patchY + patchH + 3 },     // Bottom-Left
+      { x: patchX + patchW + 3,     y: patchY + patchH + 3 }      // Bottom-Right
     ];
 
-    fiducials.forEach(f => {
+    fiducials.forEach((f, idx) => {
+      // Black outer frame
       ctx.fillStyle = '#000000';
-      ctx.fillRect(f.x, f.y, fidSize, fidSize);
+      ctx.fillRect(f.x, f.y, markerSize, markerSize);
+
+      // White inner border
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(f.x + 2, f.y + 2, fidSize - 4, fidSize - 4);
+      ctx.fillRect(f.x + 1.5, f.y + 1.5, markerSize - 3, markerSize - 3);
+
+      // Distinct binary pattern bits
       ctx.fillStyle = '#000000';
-      ctx.fillRect(f.x + 4, f.y + 4, 2, 2);
+      if (idx === 0) {
+        ctx.fillRect(f.x + 3.5, f.y + 3.5, 4, 4);
+      } else if (idx === 1) {
+        ctx.fillRect(f.x + 3.5, f.y + 3.5, 2, 4);
+        ctx.fillRect(f.x + 5.5, f.y + 5.5, 2, 2);
+      } else if (idx === 2) {
+        ctx.fillRect(f.x + 4, f.y + 3.5, 3, 3);
+      } else {
+        ctx.fillRect(f.x + 3.5, f.y + 4, 4, 3);
+      }
     });
 
-    // Main Chemical Sensor Strip
+    // Main Chemical Reactive Sensor Window
     const sensorRgb = ColorimetryEngine.getSimulatedSensorRgb(dosePpmH);
     const sensorHex = ColorimetryEngine.rgbToHex(sensorRgb);
 
     ctx.fillStyle = sensorHex;
     ctx.strokeStyle = '#111111';
-    ctx.lineWidth = 2.0;
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.roundRect(patchX, patchY, patchW, patchH, 8);
+    ctx.roundRect(patchX, patchY, patchW, patchH, 12);
     ctx.fill();
     ctx.stroke();
 
-    // Exposure Scale Label below patch
+    // Text below patch: "Exposure Scale (H2-S)"
     ctx.fillStyle = '#111111';
-    ctx.font = '700 7px Inter, sans-serif';
-    ctx.fillText('Exposure Scale (H2-S)', patchX + Math.floor(patchW * 0.08), patchY + patchH + 11);
+    ctx.font = '600 7.5px Inter, system-ui, sans-serif';
+    ctx.fillText('Exposure Scale (H2-S)', patchX + 11, patchY + patchH + 14);
 
     // --------------------------------------------------
     // 4. VERTICAL REFERENCE SCALE (5 Calibrated Swatches)
     // --------------------------------------------------
-    const refX = patchX + patchW + Math.floor(width * 0.04);
+    const refX = patchX + patchW + 22;
+    const refY = patchY;
     const refW = 16;
     const refH = patchH;
-    const refY = patchY;
 
-    const refColors = ['#EDF5EF', '#C6D8C4', '#A1A895', '#5E5448', '#242220'];
+    const refColors = ['#F4F8F4', '#DFE7DE', '#B8C3B5', '#685E53', '#262320'];
     const swatchH = refH / refColors.length;
 
+    ctx.lineWidth = 1.2;
     ctx.strokeStyle = '#111111';
-    ctx.lineWidth = 1;
 
     refColors.forEach((color, i) => {
       ctx.fillStyle = color;
@@ -135,39 +152,43 @@ export class SimulatedBadge {
     });
 
     // --------------------------------------------------
-    // 5. RIGHT EXPIRY STATUS SWATCHES & CIRCULAR SEAL
+    // 5. EXPIRY STATUS INDICATORS (Valid, Expired, Over-Expired)
     // --------------------------------------------------
-    const statusX = refX + refW + 28;
-    const statusW = 14;
-    const statusH = 10;
-    const statusY = refY + 6;
+    const statusTextX = refX + refW + 28;
+    const statusBoxX = statusTextX + 26;
+    const statusY = refY + 4;
+    const boxW = 14;
+    const boxH = 20;
 
     const statusList = [
-      { text: 'Valid', color: '#EDF5EF' },
+      { text: 'Valid', color: '#E3EAE5' },
       { text: 'Expired', color: '#9E9E9E' },
       { text: 'Over-Expired', color: '#3E3E3E' }
     ];
 
+    ctx.font = '600 8.5px Inter, system-ui, sans-serif';
+
     statusList.forEach((s, idx) => {
-      const currentY = statusY + idx * 18;
+      const cy = statusY + idx * 26;
       ctx.fillStyle = '#111111';
-      ctx.font = '600 6.5px Inter, sans-serif';
-      ctx.fillText(s.text, statusX - 22, currentY + 7);
+      ctx.fillText(s.text, statusTextX - 18, cy + 13);
 
       ctx.fillStyle = s.color;
+      ctx.fillRect(statusBoxX, cy, boxW, boxH);
       ctx.strokeStyle = '#111111';
-      ctx.lineWidth = 1;
-      ctx.fillRect(statusX, currentY, statusW, statusH);
-      ctx.strokeRect(statusX, currentY, statusW, statusH);
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(statusBoxX, cy, boxW, boxH);
     });
 
-    // Far-Right Circular Seal Element
-    const circleRadius = Math.floor(patchH * 0.48);
-    const circleX = statusX + statusW + 28;
-    const circleY = patchY + Math.floor(patchH / 2);
+    // --------------------------------------------------
+    // 6. FAR-RIGHT CIRCULAR HERMETIC SEAL
+    // --------------------------------------------------
+    const circleRadius = 36;
+    const circleX = statusBoxX + boxW + 46;
+    const circleY = patchY + patchH / 2;
 
-    // Outer Dark Circle
-    ctx.fillStyle = '#555555';
+    // Outer Dark Grey Circle
+    ctx.fillStyle = '#5B5D5C';
     ctx.strokeStyle = '#111111';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
@@ -175,9 +196,74 @@ export class SimulatedBadge {
     ctx.fill();
     ctx.stroke();
 
-    // Inner White Square
-    const sqSize = Math.floor(circleRadius * 1.1);
-    ctx.fillStyle = isExpired ? '#3E3E3E' : '#DDE5E0';
-    ctx.fillRect(circleX - Math.floor(sqSize / 2), circleY - Math.floor(sqSize / 2), sqSize, sqSize);
+    // Inner White/Grey Square
+    const sqSize = 34;
+    ctx.fillStyle = isExpired ? '#3E3E3E' : '#DDE4DF';
+    ctx.fillRect(circleX - sqSize / 2, circleY - sqSize / 2, sqSize, sqSize);
+    ctx.strokeStyle = '#111111';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(circleX - sqSize / 2, circleY - sqSize / 2, sqSize, sqSize);
+  }
+
+  /**
+   * Render a crisp, realistic 2D QR code matrix with finder patterns
+   */
+  static drawRealisticQrCode(ctx, x, y, size) {
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(x, y, size, size);
+
+    ctx.fillStyle = '#000000';
+    // 3 Finder Patterns (Top-Left, Top-Right, Bottom-Left)
+    this.drawFinderPattern(ctx, x + 2, y + 2, 13);
+    this.drawFinderPattern(ctx, x + size - 15, y + 2, 13);
+    this.drawFinderPattern(ctx, x + 2, y + size - 15, 13);
+
+    // Realistic QR matrix bit grid
+    const step = 3.2;
+    const qrMatrix = [
+      [0,0,0,0,0,0,0,1,0,1,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,1,0,1,1,0,0,0,0,0,0],
+      [1,0,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0],
+      [0,1,0,0,1,0,1,1,0,1,0,1,0,0,1,0,1],
+      [1,1,0,1,0,1,0,0,1,0,1,1,0,1,0,1,0],
+      [0,0,1,0,1,0,1,1,0,1,0,0,1,0,1,1,0],
+      [1,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,1],
+      [0,1,1,0,1,0,1,1,0,1,0,1,1,0,1,0,0],
+      [1,0,0,1,0,1,0,0,1,0,1,0,0,1,0,1,1],
+      [0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0]
+    ];
+
+    for (let r = 0; r < qrMatrix.length; r++) {
+      for (let c = 0; c < qrMatrix[r].length; c++) {
+        if (qrMatrix[r][c] === 1) {
+          ctx.fillRect(x + 3 + c * step, y + 3 + r * step, step - 0.4, step - 0.4);
+        }
+      }
+    }
+
+    // Center icon badge mark inside QR code
+    const cx = x + size / 2;
+    const cy = y + size / 2;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  static drawFinderPattern(ctx, x, y, size) {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(x, y, size, size);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(x + 2, y + 2, size - 4, size - 4);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(x + 3.8, y + 3.8, size - 7.6, size - 7.6);
   }
 }
