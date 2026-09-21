@@ -187,8 +187,8 @@ export class SimulatedBadge {
     const circleX = statusBoxX + boxW + 46;
     const circleY = patchY + patchH / 2;
 
-    // Outer Dark Grey Circle
-    ctx.fillStyle = '#5B5D5C';
+    // Outer Silver Circle
+    ctx.fillStyle = isExpired ? '#3E3E3E' : '#B8C4BC';
     ctx.strokeStyle = '#111111';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
@@ -196,9 +196,9 @@ export class SimulatedBadge {
     ctx.fill();
     ctx.stroke();
 
-    // Inner White/Grey Square
+    // Inner White Square
     const sqSize = 34;
-    ctx.fillStyle = isExpired ? '#3E3E3E' : '#DDE4DF';
+    ctx.fillStyle = isExpired ? '#252525' : '#F2F8F4';
     ctx.fillRect(circleX - sqSize / 2, circleY - sqSize / 2, sqSize, sqSize);
     ctx.strokeStyle = '#111111';
     ctx.lineWidth = 1;

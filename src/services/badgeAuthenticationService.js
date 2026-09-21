@@ -214,9 +214,9 @@ export class BadgeAuthenticationService {
           const b = data[idx+2];
           const luma = (r + g + b) / 3;
 
-          // Exclude outer dark borders or yellow substrate
+          // Exclude yellow substrate and dark text/borders (luma < 90)
           const isYellow = (r > 130 && g > 110 && (g - b) > 55);
-          if (!isYellow && luma > 30) {
+          if (!isYellow && luma > 90) {
             totalR += r;
             totalG += g;
             totalB += b;
@@ -231,8 +231,8 @@ export class BadgeAuthenticationService {
         const avgB = totalB / count;
         const avgLuma = (0.2126 * avgR + 0.7152 * avgG + 0.0722 * avgB);
 
-        // Degraded / Expired state: Sealed patch has darkened significantly from heat/time (Luma < 125 or dark olive-brown)
-        if (avgLuma < 125 || (avgR < 110 && avgG < 100)) {
+        // Degraded / Expired state: Sealed validity patch has darkened significantly (Luma < 105 and avgR < 95)
+        if (avgLuma < 105 && avgR < 95) {
           return {
             status: 'EXPIRED',
             sampledLuma: Math.round(avgLuma),
